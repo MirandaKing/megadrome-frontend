@@ -12,22 +12,16 @@ export default function SwapPage() {
         >
             <Header />
 
-            {/* Main Content */}
-            <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-16">
-                <div className="w-full max-w-7xl mx-auto">
-                    {/* Hero Section */}
-                    <div className="text-center mb-8 md:mb-12">
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3">
-                            Swap Tokens
-                        </h1>
-                        <p className="text-white/60 text-sm md:text-base max-w-md mx-auto">
-                            Trade tokens instantly with the best rates on Megadrome
-                        </p>
-                    </div>
+            {/* Hero Section */}
+            <div className="pt-8 pb-4 px-4 text-center">
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Swap</h1>
+                <p className="text-white/60 text-sm md:text-base max-w-md mx-auto">
+                    Trade tokens instantly with minimal slippage
+                </p>
+            </div>
 
-                    {/* Swap Component */}
-                    <Swap />
-                </div>
+            <div className="flex-1 flex items-start justify-center px-4 py-8">
+                <Swap />
             </div>
 
             <Footer />
