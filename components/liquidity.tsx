@@ -246,13 +246,6 @@ export default function Liquidity() {
 
                     <div className="flex items-center gap-4">
                         <Link
-                            href="/liquidity/deposit"
-                            className="flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-colors"
-                        >
-                            <Plus className="w-4 h-4" />
-                            New deposit
-                        </Link>
-                        <Link
                             href="/liquidity/launch"
                             className="flex items-center gap-2 bg-[#f7931a] hover:bg-[#ff9f2a] text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-colors"
                         >
