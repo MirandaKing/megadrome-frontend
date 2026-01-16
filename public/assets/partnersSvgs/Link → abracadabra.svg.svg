@@ -1,0 +1,53 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g opacity="0.7" clip-path="url(#clip0_24_241)">
+<g clip-path="url(#clip1_24_241)">
+<g clip-path="url(#clip2_24_241)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M24 47C36.7025 47 47 36.7025 47 24C47 11.2975 36.7025 1 24 1C11.2975 1 1 11.2975 1 24C1 36.7025 11.2975 47 24 47ZM24 48C37.2548 48 48 37.2548 48 24C48 10.7452 37.2548 0 24 0C10.7452 0 0 10.7452 0 24C0 37.2548 10.7452 48 24 48Z" fill="#394150"/>
+<path d="M13 20H11V28H13V20Z" fill="#394150"/>
+<path d="M37 20H35V28H37V20Z" fill="#394150"/>
+<path d="M33 16H31V18H33V16Z" fill="#394150"/>
+<path d="M33 30H31V32H33V30Z" fill="#394150"/>
+<path d="M35 28H33V30H35V28Z" fill="#394150"/>
+<path d="M35 18H33V20H35V18Z" fill="#394150"/>
+<path d="M31 32H29V34H31V32Z" fill="#394150"/>
+<path d="M19 32H17V34H19V32Z" fill="#394150"/>
+<path d="M17 30H15V32H17V30Z" fill="#394150"/>
+<path d="M15 28H13V30H15V28Z" fill="#394150"/>
+<path d="M15 18H13V20H15V18Z" fill="#394150"/>
+<path d="M17 16H15V18H17V16Z" fill="#394150"/>
+<path d="M19 14H17V16H19V14Z" fill="#394150"/>
+<path d="M31 14H29V16H31V14Z" fill="#394150"/>
+<path d="M29 12H19V14H29V12Z" fill="#394150"/>
+<path d="M29 34H19V36H29V34Z" fill="#394150"/>
+<path opacity="0.5" d="M15 20H13V28H15V20Z" fill="#394150"/>
+<path opacity="0.5" d="M17 18H15V20H17V18Z" fill="#394150"/>
+<path opacity="0.5" d="M19 16H17V18H19V16Z" fill="#394150"/>
+<path opacity="0.5" d="M29 14H19V16H29V14Z" fill="#394150"/>
+<path opacity="0.5" d="M29 32H19V34H29V32Z" fill="#394150"/>
+<path opacity="0.5" d="M31 16H29V18H31V16Z" fill="#394150"/>
+<path opacity="0.5" d="M31 30H29V32H31V30Z" fill="#394150"/>
+<path opacity="0.5" d="M33 28H31V30H33V28Z" fill="#394150"/>
+<path opacity="0.5" d="M33 18H31V20H33V18Z" fill="#394150"/>
+<path opacity="0.5" d="M19 30H17V32H19V30Z" fill="#394150"/>
+<path opacity="0.5" d="M17 28H15V30H17V28Z" fill="#394150"/>
+<path opacity="0.5" d="M35 20H33V28H35V20Z" fill="#394150"/>
+<path d="M19 18H17V30H19V18Z" fill="#394150"/>
+<path d="M31 18H29V30H31V18Z" fill="#394150"/>
+<path d="M21 20H19V22H21V20Z" fill="#394150"/>
+<path d="M29 20H27V22H29V20Z" fill="#394150"/>
+<path d="M27 22H21V24H27V22Z" fill="#394150"/>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_24_241">
+<rect width="48" height="48" fill="white"/>
+</clipPath>
+<clipPath id="clip1_24_241">
+<rect width="48" height="48" fill="white"/>
+</clipPath>
+<clipPath id="clip2_24_241">
+<rect width="48" height="48" fill="white"/>
+</clipPath>
+</defs>
+</svg>
