@@ -1,5 +1,6 @@
 import { http, createConfig } from "wagmi";
 import { injected, walletConnect } from "wagmi/connectors";
+import { mainnet } from "wagmi/chains";
 import { type Chain } from "viem";
 
 // Define Monad chain
@@ -16,7 +17,7 @@ export const monad: Chain = {
     public: { http: ["https://rpc.monad.xyz"] },
   },
   blockExplorers: {
-    default: { name: "MonadVision", url: "https://monadvision.com" },
+    default: { name: "MonadScan", url: "https://monadscan.com" },
   },
 };
 
@@ -39,7 +40,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [monad.id]: http(),
+    [monad.id]: http()
   },
 });
 

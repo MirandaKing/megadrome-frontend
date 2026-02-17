@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useConnect, useConnection, useDisconnect } from "wagmi";
+import { useConnect, useAccount, useDisconnect } from "wagmi";
 import { Loader2 } from "lucide-react";
 
 interface ConnectWalletModalProps {
@@ -49,7 +49,7 @@ const BrowserWalletIcon = () => (
   >
     <g clipPath="url(#clip0_browser)">
       <path
-        d="M24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24C18.6274 24 24 18.6274 24 12Z"
+        d="M24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24C18.6274 24 18.6274 24 12Z"
         fill="black"
       />
       <path
@@ -84,7 +84,7 @@ export default function ConnectWalletModal({
   onClose,
 }: ConnectWalletModalProps) {
   const { connectors, connect, isPending, error } = useConnect();
-  const { isConnected } = useConnection();
+  const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
 
   // Close modal when connected
@@ -224,7 +224,7 @@ export default function ConnectWalletModal({
                     Connect your wallet to continue.
                     <br />
                     <span className="text-[#f7931a] font-medium">
-                      Monad Testnet
+                      Monad Mainnet
                     </span>{" "}
                     only.
                   </p>

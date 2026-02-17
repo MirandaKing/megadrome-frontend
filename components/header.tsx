@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ConnectWalletModal from "@/components/connect-wallet-modal";
-import { useConnection, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect, useChainId, useSwitchChain } from "wagmi";
+import { monad } from "@/lib/wagmi";
 import {
   ChevronDown,
   LogOut,
@@ -14,6 +15,7 @@ import {
   Check,
   Menu,
   X,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function Header() {
@@ -22,8 +24,15 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { address, isConnected } = useConnection();
+
+  // Wagmi hooks
+  const { address, isConnected, chainId: accountChainId } = useAccount();
   const { disconnect } = useDisconnect();
+  const globalChainId = useChainId();
+  const { switchChain } = useSwitchChain();
+
+  // Use account chainId if available, otherwise global chainId
+  const currentChainId = accountChainId || globalChainId;
 
   // Prevent hydration mismatch: wagmi auto-reconnects on client,
   // so isConnected can differ between server (false) and client (true)
@@ -48,7 +57,6 @@ export default function Header() {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/swap", label: "Swap" },
     { href: "/liquidity", label: "Liquidity" },
-
     { href: "/vote", label: "Vote" },
     { href: "/lock", label: "Lock" },
     { href: "/incentivize", label: "Incentivize" },
@@ -97,76 +105,87 @@ export default function Header() {
           <div className="flex items-center gap-3">
             {/* Connect Button / Wallet Dropdown */}
             {mounted && isConnected && address ? (
-              <div className="relative">
+              currentChainId !== monad.id ? (
                 <Button
-                  className="bg-[#0d1f1a] hover:bg-[#1a3a2f] cursor-pointer text-white rounded-lg px-3 py-2 sm:px-4 h-auto font-medium text-sm border border-white/10 transition-all flex items-center gap-2"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 rounded-lg px-4 py-2 h-auto font-medium text-sm transition-all flex items-center gap-2"
+                  onClick={() => switchChain({ chainId: monad.id })}
                 >
-                  {/* Monad chain indicator */}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" className="flex-shrink-0"><path fill="#836EF9" d="M12 3c-2.599 0-9 6.4-9 9s6.401 9 9 9s9-6.401 9-9s-6.401-9-9-9m-1.402 14.146c-1.097-.298-4.043-5.453-3.744-6.549s5.453-4.042 6.549-3.743c1.095.298 4.042 5.453 3.743 6.549c-.298 1.095-5.453 4.042-6.549 3.743" /></svg>
-                  <span className="hidden sm:inline">{truncateAddress(address)}</span>
-                  <span className="sm:hidden">{address.slice(0, 4)}...</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="hidden sm:inline">Switch to Monad</span>
+                  <span className="sm:hidden">Switch</span>
                 </Button>
+              ) : (
+                <div className="relative">
+                  <Button
+                    className="bg-[#0d1f1a] hover:bg-[#1a3a2f] cursor-pointer text-white rounded-lg px-3 py-2 sm:px-4 h-auto font-medium text-sm border border-white/10 transition-all flex items-center gap-2"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  >
+                    {/* Monad chain indicator */}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" className="flex-shrink-0"><path fill="#836EF9" d="M12 3c-2.599 0-9 6.4-9 9s6.401 9 9 9s9-6.401 9-9s-6.401-9-9-9m-1.402 14.146c-1.097-.298-4.043-5.453-3.744-6.549s5.453-4.042 6.549-3.743c1.095.298 4.042 5.453 3.743 6.549c-.298 1.095-5.453 4.042-6.549 3.743" /></svg>
+                    <span className="hidden sm:inline">{truncateAddress(address)}</span>
+                    <span className="sm:hidden">{address.slice(0, 4)}...</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </Button>
 
-                {/* Dropdown menu */}
-                {isDropdownOpen && (
-                  <>
-                    {/* Backdrop */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsDropdownOpen(false)}
-                    />
+                  {/* Dropdown menu */}
+                  {isDropdownOpen && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsDropdownOpen(false)}
+                      />
 
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-[#0a1612] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
-                      {/* Connected status */}
-                      <div className="px-4 py-3 border-b border-white/5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-green-500" />
-                          <span className="text-xs text-white/60">Connected to Monad</span>
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-[#0a1612] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                        {/* Connected status */}
+                        <div className="px-4 py-3 border-b border-white/5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <span className="text-xs text-white/60">Connected to Monad</span>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="p-2">
+                          <button
+                            onClick={copyAddress}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                          >
+                            {copied ? (
+                              <Check className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                            {copied ? 'Copied!' : 'Copy Address'}
+                          </button>
+
+                          <a
+                            href={`https://monadscan.com/address/${address}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                            onClick={() => setIsDropdownOpen(false)}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            View on Explorer
+                          </a>
+
+                          <button
+                            onClick={() => {
+                              disconnect()
+                              setIsDropdownOpen(false)
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Disconnect
+                          </button>
                         </div>
                       </div>
-
-                      {/* Actions */}
-                      <div className="p-2">
-                        <button
-                          onClick={copyAddress}
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                        >
-                          {copied ? (
-                            <Check className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                          {copied ? 'Copied!' : 'Copy Address'}
-                        </button>
-
-                        <a
-                          href={`https://monadscan.com/address/${address}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          View on Explorer
-                        </a>
-
-                        <button
-                          onClick={() => {
-                            disconnect()
-                            setIsDropdownOpen(false)
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Disconnect
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+                    </>
+                  )}
+                </div>
+              )
             ) : (
               <Button
                 className="bg-[#f7931a] hover:bg-[#ff9f2a] cursor-pointer text-white rounded-lg px-4 py-2 h-auto font-bold text-sm border-0 transition-transform active:scale-95"
@@ -221,8 +240,8 @@ export default function Header() {
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActiveLink(link.href)
-                        ? "bg-[#f7931a]/10 text-[#f7931a]"
-                        : "text-white/70 hover:text-white hover:bg-white/5"
+                      ? "bg-[#f7931a]/10 text-[#f7931a]"
+                      : "text-white/70 hover:text-white hover:bg-white/5"
                       }`}
                   >
                     {link.label === "Swap" && (
@@ -414,7 +433,7 @@ export default function Header() {
             <div className="absolute bottom-0 left-0 right-0 px-6 py-4 border-t border-white/5 bg-[#080c0a]">
               <div className="flex items-center gap-2 text-xs text-white/40">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
-                Monad Testnet
+                Monad Mainnet
               </div>
             </div>
           </div>
