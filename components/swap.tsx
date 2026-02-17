@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronDown, ArrowDown, AlertTriangle, Loader2 } from "lucide-react";
-import { useAccount } from "wagmi";
+import { useConnection } from "wagmi";
 import TokenSelectModal, { Token } from "./token-select-modal";
 import { useSwap } from "@/hooks/use-swap";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -16,7 +16,7 @@ const defaultFromToken = TOKEN_LIST.find((t) => t.symbol === "MON")!;
 const defaultToToken = TOKEN_LIST.find((t) => t.symbol === "USDC")!;
 
 export default function Swap() {
-  const { isConnected } = useAccount();
+  const { isConnected } = useConnection();
   const { slippage: storeSlippage, setSlippage: setStoreSlippage } =
     useSettingsStore();
 
@@ -353,113 +353,130 @@ export default function Swap() {
             parseFloat(fromAmount) > 0 &&
             !sameTokenSelected &&
             !isWrapOperation && (
-            <div className="px-6 pb-6 space-y-0 border-t border-white/5 pt-4">
-              {/* Fees */}
-              <div className="flex items-center justify-between py-3 border-b border-white/5">
-                <span className="text-sm text-white/60">Fees</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-[#f7931a]/20 flex items-center justify-center">
-                    <Image
-                      src="/assets/Logo.svg"
-                      alt="MEGA"
-                      width={14}
-                      height={14}
-                      className="w-3.5 h-3.5"
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-white">
-                    {feePercent}%
-                  </span>
-                  <span className="text-white/30">&raquo;</span>
-                  <div className="w-5 h-5 rounded-full bg-[#f7931a]/20 flex items-center justify-center">
-                    <Image
-                      src="/assets/Logo.svg"
-                      alt="MEGA"
-                      width={14}
-                      height={14}
-                      className="w-3.5 h-3.5"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Exchange Rate */}
-              <div className="flex items-center justify-between py-3 border-b border-white/5">
-                <span className="text-sm text-white/60">Exchange rate</span>
-                <span className="text-sm font-medium text-white">
-                  {exchangeRate > 0 ? (
-                    <>
-                      1 {fromToken.symbol} = {formatAmount(exchangeRate, 4)}{" "}
-                      {toToken.symbol}
-                      <span className="text-white/40 text-xs ml-1">
-                        ({quote.routeIsStable ? "Stable" : "Volatile"})
+              <div className="px-6 pb-6 space-y-0 border-t border-white/5 pt-4">
+                {/* Fees - Aerodrome style */}
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <span className="text-sm text-white/60">Fees</span>
+                  <div className="flex items-center gap-1.5">
+                    {/* From Token */}
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                      <Image
+                        src={fromToken.logoUrl}
+                        alt={fromToken.symbol}
+                        width={20}
+                        height={20}
+                        className="w-full h-full"
+                      />
+                    </div>
+                    {/* Arrow */}
+                    <span className="text-white/30 text-xs">&raquo;</span>
+                    {/* Fee Badge */}
+                    <div className="flex items-center gap-1 bg-[#f7931a]/10 rounded-full px-2 py-0.5 border border-[#f7931a]/20">
+                      <Image
+                        src="/assets/Logo.svg"
+                        alt="MEGA"
+                        width={12}
+                        height={12}
+                        className="w-3 h-3"
+                      />
+                      <span className="text-xs font-semibold text-[#f7931a]">
+                        {feePercent}%
                       </span>
-                    </>
-                  ) : quote.isLoading ? (
-                    "Loading..."
-                  ) : (
-                    "—"
-                  )}
-                </span>
-              </div>
-
-              {/* Price Impact */}
-              <div className="flex items-center justify-between py-3 border-b border-white/5">
-                <span className="text-sm text-white/60">Price impact</span>
-                <span
-                  className={`text-sm font-medium ${
-                    quote.priceImpact > 5
-                      ? "text-red-400"
-                      : quote.priceImpact > 1
-                      ? "text-yellow-400"
-                      : "text-white"
-                  }`}
-                >
-                  {quote.isLoading ? "..." : `${priceImpact}%`}
-                </span>
-              </div>
-
-              {/* Minimum Received */}
-              <div className="flex items-center justify-between py-3">
-                <span className="text-sm text-white/60">Minimum received</span>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowSlippage(!showSlippage)}
-                      className="text-sm text-[#f7931a] hover:text-[#ff9f2a] transition-colors flex items-center gap-1"
-                    >
-                      Slippage {slippage}%
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
-
-                    {showSlippage && (
-                      <div className="absolute right-0 top-full mt-2 bg-[#0a1612] rounded-xl border border-white/10 shadow-xl z-50 p-2 flex gap-1">
-                        {["0.1", "0.5", "1", "3"].map((val) => (
-                          <button
-                            key={val}
-                            onClick={() => {
-                              setStoreSlippage(parseFloat(val));
-                              setShowSlippage(false);
-                            }}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                              slippage === val
-                                ? "bg-[#f7931a] text-white"
-                                : "bg-white/5 text-white/60 hover:bg-white/10"
-                            }`}
-                          >
-                            {val}%
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    </div>
+                    {/* Arrow */}
+                    <span className="text-white/30 text-xs">&raquo;</span>
+                    {/* To Token */}
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                      <Image
+                        src={toToken.logoUrl}
+                        alt={toToken.symbol}
+                        width={20}
+                        height={20}
+                        className="w-full h-full"
+                      />
+                    </div>
                   </div>
+                </div>
+
+                {/* Exchange Rate */}
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <span className="text-sm text-white/60">Exchange rate</span>
                   <span className="text-sm font-medium text-white">
-                    {minReceived} {toToken.symbol}
+                    {exchangeRate > 0 ? (
+                      <>
+                        1 {fromToken.symbol} = {formatAmount(exchangeRate, 4)}{" "}
+                        {toToken.symbol}
+                        <span className="text-white/40 text-xs ml-1">
+                          ({quote.routeIsStable ? "Stable" : "Volatile"})
+                        </span>
+                      </>
+                    ) : quote.isLoading ? (
+                      "Loading..."
+                    ) : (
+                      "—"
+                    )}
                   </span>
                 </div>
+
+                {/* Price Impact */}
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <span className="text-sm text-white/60">Price impact</span>
+                  <span
+                    className={`text-sm font-medium ${
+                      quote.priceImpact > 5
+                        ? "text-red-400"
+                        : quote.priceImpact > 1
+                        ? "text-yellow-400"
+                        : "text-white"
+                    }`}
+                  >
+                    {quote.isLoading ? "..." : `${priceImpact}%`}
+                  </span>
+                </div>
+
+                {/* Minimum Received */}
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-sm text-white/60">
+                    Minimum received
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowSlippage(!showSlippage)}
+                        className="text-sm text-[#f7931a] hover:text-[#ff9f2a] transition-colors flex items-center gap-1"
+                      >
+                        Slippage {slippage}%
+                        <ChevronDown className="w-3 h-3" />
+                      </button>
+
+                      {showSlippage && (
+                        <div className="absolute right-0 top-full mt-2 bg-[#0a1612] rounded-xl border border-white/10 shadow-xl z-50 p-2 flex gap-1">
+                          {["0.1", "0.5", "1", "3"].map((val) => (
+                            <button
+                              key={val}
+                              onClick={() => {
+                                setStoreSlippage(parseFloat(val));
+                                setShowSlippage(false);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                slippage === val
+                                  ? "bg-[#f7931a] text-white"
+                                  : "bg-white/5 text-white/60 hover:bg-white/10"
+                              }`}
+                            >
+                              {val}%
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-white">
+                      {minReceived} {toToken.symbol}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Warning Banner */}
           {insufficientBalance && (

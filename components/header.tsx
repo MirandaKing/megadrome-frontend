@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ConnectWalletModal from "@/components/connect-wallet-modal";
-import { useAccount, useDisconnect } from "wagmi";
+import { useConnection, useDisconnect } from "wagmi";
 import {
   ChevronDown,
   LogOut,
@@ -22,7 +22,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useConnection();
   const { disconnect } = useDisconnect();
 
   // Prevent hydration mismatch: wagmi auto-reconnects on client,

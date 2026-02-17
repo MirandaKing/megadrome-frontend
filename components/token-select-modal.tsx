@@ -105,29 +105,29 @@ export default function TokenSelectModal({
     setError(null);
 
     try {
-      const response = await fetch(API_ENDPOINT);
-      const data = await response.json();
-      console.log("Default tokens response:", data);
+      //   const response = await fetch(API_ENDPOINT);
+      //   const data = await response.json();
+      //   console.log("Default tokens response:", data);
 
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      //   if (data.error) {
+      //     throw new Error(data.error);
+      //   }
 
-      const fetchedTokens = parseTokenProjects(data);
-      console.log("Parsed default tokens:", fetchedTokens);
+      //   const fetchedTokens = parseTokenProjects(data);
+      //   console.log("Parsed default tokens:", fetchedTokens);
 
       // Merge with defaults
       const mergedTokens: Token[] = [...defaultTokens];
-      fetchedTokens.forEach((fetched) => {
-        const existingIndex = mergedTokens.findIndex(
-          (t) => t.symbol === fetched.symbol
-        );
-        if (existingIndex >= 0) {
-          mergedTokens[existingIndex] = fetched;
-        } else {
-          mergedTokens.push(fetched);
-        }
-      });
+      //   fetchedTokens.forEach((fetched) => {
+      //     const existingIndex = mergedTokens.findIndex(
+      //       (t) => t.symbol === fetched.symbol
+      //     );
+      //     if (existingIndex >= 0) {
+      //       mergedTokens[existingIndex] = fetched;
+      //     } else {
+      //       mergedTokens.push(fetched);
+      //     }
+      //   });
 
       setTokens(mergedTokens);
     } catch (err) {
