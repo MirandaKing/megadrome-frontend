@@ -243,12 +243,12 @@ export const ABIS = {
   ],
   VotingEscrow: [
     {
-      name: "create_lock",
+      name: "createLock",
       type: "function",
       stateMutability: "nonpayable",
       inputs: [
         { name: "_value", type: "uint256" },
-        { name: "_lock_duration", type: "uint256" },
+        { name: "_lockDuration", type: "uint256" },
       ],
       outputs: [{ name: "", type: "uint256" }],
     },
