@@ -664,10 +664,11 @@ export function useSwap({
   return {
     amountOut,
     quote: {
-      isLoading: quoteLoading,
-      error: quoteError as Error | null,
-      priceImpact,
-      exchangeRate,
+      // Wrap operations are instant (no RPC quote needed) — never show loading
+      isLoading: isWrapOperation ? false : quoteLoading,
+      error: isWrapOperation ? null : (quoteError as Error | null),
+      priceImpact: isWrapOperation ? 0 : priceImpact,
+      exchangeRate: isWrapOperation ? 1 : exchangeRate,
       routeIsStable,
     },
     swap,
