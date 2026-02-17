@@ -44,6 +44,7 @@ interface UseSwapReturn {
   approve: () => Promise<void>;
   isApproving: boolean;
   error: string | null;
+  clearError: () => void;
   balanceIn: string;
   balanceOut: string;
   insufficientBalance: boolean;
@@ -91,7 +92,17 @@ export function useSwap({
   const routingAddressIn = tokenIn ? getRoutingAddress(tokenIn) : undefined;
   const routingAddressOut = tokenOut ? getRoutingAddress(tokenOut) : undefined;
 
-  // Parse input amount with correct decimals
+  // Raw (non-debounced) bigint — used for wrap operations so output is instant
+  const rawAmountInBigInt = useMemo(() => {
+    if (!amountIn || !tokenIn) return BigInt(0);
+    try {
+      return parseUnits(amountIn, tokenIn.decimals);
+    } catch {
+      return BigInt(0);
+    }
+  }, [amountIn, tokenIn]);
+
+  // Debounced bigint — used for router RPC calls to avoid excessive requests
   const amountInBigInt = useMemo(() => {
     if (!debouncedAmountIn || !tokenIn) return BigInt(0);
     try {
@@ -178,8 +189,9 @@ export function useSwap({
     [rawBalanceOut, tokenOut]
   );
 
+  // Use rawAmountInBigInt for balance check so it's always instant (no debounce lag)
   const insufficientBalance =
-    amountInBigInt > BigInt(0) && amountInBigInt > rawBalanceIn;
+    rawAmountInBigInt > BigInt(0) && rawAmountInBigInt > rawBalanceIn;
 
   // --- Quote Fetching ---
 
@@ -302,9 +314,9 @@ export function useSwap({
   // Extract the final amount from amounts array (last element)
   // For wrap/unwrap operations, return 1:1 conversion
   const quotedAmountOut = useMemo(() => {
-    // Handle wrap/unwrap: 1:1 conversion (MON has 18 decimals, WMON has 18 decimals)
-    if (isWrapOperation && amountInBigInt > BigInt(0)) {
-      return amountInBigInt;
+    // Wrap/unwrap: use rawAmountInBigInt so output updates instantly (no debounce delay)
+    if (isWrapOperation && rawAmountInBigInt > BigInt(0)) {
+      return rawAmountInBigInt;
     }
 
     if (!amounts || !Array.isArray(amounts) || amounts.length === 0) {
@@ -312,7 +324,7 @@ export function useSwap({
     }
     // amounts is an array of bigints, last one is the output amount
     return amounts[amounts.length - 1];
-  }, [amounts, isWrapOperation, amountInBigInt]);
+  }, [amounts, isWrapOperation, rawAmountInBigInt]);
 
   // Debug logging
   // useEffect(() => {
@@ -518,7 +530,9 @@ export function useSwap({
 
   const swap = useCallback(async () => {
     if (!tokenIn || !tokenOut || !address) return;
-    if (amountInBigInt === BigInt(0)) return;
+    // Use rawAmountInBigInt for wraps (instant), amountInBigInt for swaps (debounced)
+    const effectiveAmount = isWrapOperation ? rawAmountInBigInt : amountInBigInt;
+    if (effectiveAmount === BigInt(0)) return;
     setError(null);
 
     try {
@@ -538,7 +552,7 @@ export function useSwap({
             abi: ABIS.WMON,
             functionName: "deposit",
             args: [],
-            value: amountInBigInt,
+            value: rawAmountInBigInt,
           });
         } else {
           // WMON -> MON: withdraw WMON to get native MON
@@ -546,7 +560,7 @@ export function useSwap({
             address: wmonAddress,
             abi: ABIS.WMON,
             functionName: "withdraw",
-            args: [amountInBigInt],
+            args: [rawAmountInBigInt],
           });
         }
 
@@ -634,6 +648,7 @@ export function useSwap({
     address,
     routerAddress,
     amountInBigInt,
+    rawAmountInBigInt,
     quotedAmountOut,
     slippage,
     deadline,
@@ -661,6 +676,7 @@ export function useSwap({
     approve,
     isApproving,
     error,
+    clearError: () => setError(null),
     balanceIn,
     balanceOut,
     insufficientBalance,

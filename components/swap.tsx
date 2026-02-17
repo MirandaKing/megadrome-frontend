@@ -27,6 +27,15 @@ export default function Swap() {
   const [showFromModal, setShowFromModal] = useState(false);
   const [showToModal, setShowToModal] = useState(false);
   const [showSlippage, setShowSlippage] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [successState, setSuccessState] = useState<{
+    txHash: string;
+    fromAmount: string;
+    fromSymbol: string;
+    toAmount: string;
+    toSymbol: string;
+    isWrap: boolean;
+  } | null>(null);
 
   // Slippage from zustand store
   const slippage = storeSlippage.toString();
@@ -41,6 +50,7 @@ export default function Swap() {
     approve,
     isApproving,
     error: swapError,
+    clearError,
     balanceIn,
     balanceOut,
     insufficientBalance,
@@ -66,7 +76,10 @@ export default function Swap() {
 
   // Handlers
   const handleFromAmountChange = (value: string) => {
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    if (value === "") { setFromAmount(value); return; }
+    const decimals = fromToken.decimals;
+    const regex = new RegExp(`^\\d*\\.?\\d{0,${decimals}}$`);
+    if (regex.test(value)) {
       setFromAmount(value);
     }
   };
@@ -108,33 +121,41 @@ export default function Swap() {
     !isApproving &&
     !quote.isLoading &&
     !sameTokenSelected &&
-    (isWrapOperation || !!toAmount); // For wrap, don't need quote
+    (isWrapOperation || !!toAmount);
 
-  const getButtonText = () => {
+  const getMainButtonText = () => {
     if (!isConnected) return "Connect Wallet";
     if (sameTokenSelected) return "Select different tokens";
     if (!fromAmount || parseFloat(fromAmount) <= 0) return "Enter an amount";
     if (insufficientBalance) return `Insufficient ${fromToken.symbol} balance`;
-
-    // Wrap operation button text
-    if (isWrapOperation) {
-      if (isApproving) return "Approving...";
-      if (needsApproval) return `Approve ${fromToken.symbol}`;
-      if (isSwapping) return `Converting...`;
-      return `Convert ${fromToken.symbol}`;
-    }
-
-    // Regular swap button text
+    if (isWrapOperation) return `Convert ${fromToken.symbol}`;
     if (quote.isLoading) return "Fetching quote...";
     if (quote.error) return "Insufficient liquidity";
-    if (isApproving) return "Approving...";
-    if (needsApproval) return `Approve ${fromToken.symbol}`;
-    if (isSwapping) return "Swapping...";
     return "Swap";
   };
 
-  const handleSwapClick = async () => {
-    if (!canSwap && !needsApproval) return;
+  const getConfirmButtonText = () => {
+    if (isApproving) return "Approving...";
+    if (needsApproval) return `Approve ${fromToken.symbol}`;
+    if (isSwapping) return isWrapOperation ? "Converting..." : "Swapping...";
+    if (isWrapOperation) return `Convert ${fromToken.symbol}`;
+    return "Swap";
+  };
+
+  const handleMainButtonClick = () => {
+    if (!isConnected) return;
+    if (!canSwap) return;
+    if (isWrapOperation) {
+      // Wrap/unwrap goes directly to confirmation (no quote needed)
+      setShowConfirmation(true);
+      return;
+    }
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmSwap = async () => {
+    const action = isWrapOperation ? "Convert" : "Swap";
+    const actionVerb = isWrapOperation ? "Converting" : "Swapping";
 
     if (needsApproval) {
       toast({
@@ -147,19 +168,20 @@ export default function Swap() {
           title: "Approved",
           description: `${fromToken.symbol} approved successfully.`,
         });
-      } catch {
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const isRejected =
+          msg.includes("user rejected") || msg.includes("User denied");
         toast({
-          title: "Approval Failed",
-          description: swapError || "Could not approve token.",
+          title: isRejected ? "Rejected" : "Approval Failed",
+          description: isRejected
+            ? "You rejected the approval."
+            : "Could not approve token.",
         });
+        clearError();
         return;
       }
     }
-
-    // Different toast messages for wrap/unwrap vs swap
-    const action = isWrapOperation ? "Convert" : "Swap";
-    const actionVerb = isWrapOperation ? "Converting" : "Swapping";
-    const actionPastTense = isWrapOperation ? "Converted" : "Swapped";
 
     toast({
       title: `${action} Pending`,
@@ -167,36 +189,29 @@ export default function Swap() {
     });
     try {
       const txHash = await swap();
-      const explorerUrl = txHash ? `https://monadscan.com/tx/${txHash}` : "";
 
-      toast({
-        title: `${action} Successful`,
-        description: (
-          <div className="flex flex-col gap-1">
-            <span>
-              {actionPastTense} {fromAmount} {fromToken.symbol} to{" "}
-              {isWrapOperation ? fromAmount : formatAmount(toAmount, 6)}{" "}
-              {toToken.symbol}
-            </span>
-            {explorerUrl && (
-              <a
-                href={explorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#f7931a] hover:underline text-xs"
-              >
-                View on Explorer →
-              </a>
-            )}
-          </div>
-        ),
+      // Show success state in UI
+      setSuccessState({
+        txHash: txHash ?? "",
+        fromAmount,
+        fromSymbol: fromToken.symbol,
+        toAmount: isWrapOperation ? fromAmount : formatAmount(toAmount, 6),
+        toSymbol: toToken.symbol,
+        isWrap: isWrapOperation,
       });
       setFromAmount("");
-    } catch {
+      setShowConfirmation(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const isRejected =
+        msg.includes("user rejected") || msg.includes("User denied");
       toast({
-        title: `${action} Failed`,
-        description: swapError || "Transaction failed. Please try again.",
+        title: isRejected ? "Rejected" : `${action} Failed`,
+        description: isRejected
+          ? "You rejected the transaction."
+          : "Transaction failed. Please try again.",
       });
+      clearError();
     }
   };
 
@@ -208,9 +223,343 @@ export default function Swap() {
       !isApproving &&
       !insufficientBalance);
 
-  // Compute button disabled state - disabled only when connected but not active
-  const isButtonDisabled = Boolean(!buttonActive && isConnected);
+  const isMainButtonDisabled = Boolean(!buttonActive && isConnected);
 
+  // ─── Success View ──────────────────────────────────────────────────────────
+  if (successState) {
+    const explorerUrl = successState.txHash
+      ? `https://monadscan.com/tx/${successState.txHash}`
+      : "";
+    const actionLabel = successState.isWrap ? "Converted" : "Swapped";
+
+    return (
+      <>
+        <div className="w-full max-w-lg mx-auto space-y-3">
+          {/* Top Token Summary Card */}
+          <div className="bg-[#0a1612] rounded-3xl border border-white/10 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                  <Image
+                    src={fromToken.logoUrl}
+                    alt={successState.fromSymbol}
+                    width={44}
+                    height={44}
+                    className="w-full h-full"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/assets/Logo.svg"; }}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-white truncate">
+                    {formatAmount(successState.fromAmount, 6)} {successState.fromSymbol}
+                  </p>
+                  <p className="text-sm text-white/40">You paid</p>
+                </div>
+              </div>
+              <div className="flex-shrink-0 text-white/40">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 10h12M12 5l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="flex items-center gap-3 min-w-0 justify-end">
+                <div className="min-w-0 text-right">
+                  <p className="text-xl font-bold text-[#f7931a] truncate">
+                    {formatAmount(successState.toAmount, 6)} {successState.toSymbol}
+                  </p>
+                  <p className="text-sm text-white/40">You received</p>
+                </div>
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                  <Image
+                    src={toToken.logoUrl}
+                    alt={successState.toSymbol}
+                    width={44}
+                    height={44}
+                    className="w-full h-full"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/assets/Logo.svg"; }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Success state card */}
+          <div className="bg-[#0a1612] rounded-3xl border border-white/10 overflow-hidden">
+            <div className="px-6 py-12 flex flex-col items-center gap-4">
+              {/* Green checkmark */}
+              <div className="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <path d="M6 14l6 6 10-12" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+
+              {/* Title */}
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white">
+                  {actionLabel} {successState.fromSymbol}
+                </p>
+                <p className="text-2xl font-bold text-white">
+                  for {successState.toSymbol}
+                </p>
+              </div>
+
+              {/* View on explorer */}
+              {explorerUrl && (
+                <a
+                  href={explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-[#f7931a] hover:text-[#ff9f2a] transition-colors text-sm font-medium underline underline-offset-2"
+                >
+                  View confirmation
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              )}
+            </div>
+
+            {/* Swap again button */}
+            <div className="px-6 pb-6">
+              <button
+                onClick={() => setSuccessState(null)}
+                className="w-full py-4 rounded-2xl font-bold text-base transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/15 hover:text-white"
+              >
+                {successState.isWrap ? "Convert again" : "Swap again"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ─── Confirmation View ─────────────────────────────────────────────────────
+  if (showConfirmation) {
+    const receiveAmount = isWrapOperation ? fromAmount : toAmount;
+    return (
+      <>
+        <div className="w-full max-w-lg mx-auto space-y-3">
+          {/* Top Token Summary Card - horizontal Aerodrome style */}
+          <div className="bg-[#0a1612] rounded-3xl border border-white/10 p-5">
+            <div className="flex items-center justify-between gap-3">
+              {/* From side */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                  <Image
+                    src={fromToken.logoUrl}
+                    alt={fromToken.symbol}
+                    width={44}
+                    height={44}
+                    className="w-full h-full"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/assets/Logo.svg";
+                    }}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-white truncate">
+                    {formatAmount(fromAmount, 6)} {fromToken.symbol}
+                  </p>
+                  <p className="text-sm text-white/40">You pay</p>
+                </div>
+              </div>
+
+              {/* Arrow */}
+              <div className="flex-shrink-0 text-white/40">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M4 10h12M12 5l5 5-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+
+              {/* To side */}
+              <div className="flex items-center gap-3 min-w-0 justify-end">
+                <div className="min-w-0 text-right">
+                  <p className="text-xl font-bold text-[#f7931a] truncate">
+                    {formatAmount(receiveAmount, 6)} {toToken.symbol}
+                  </p>
+                  <p className="text-sm text-white/40">You receive</p>
+                </div>
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                  <Image
+                    src={toToken.logoUrl}
+                    alt={toToken.symbol}
+                    width={44}
+                    height={44}
+                    className="w-full h-full"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/assets/Logo.svg";
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Details + Actions Card */}
+          <div className="bg-[#0a1612] rounded-3xl border border-white/10 overflow-hidden">
+            {/* In-progress overlay */}
+            {(isSwapping || isApproving) && (
+              <div className="px-6 py-10 flex flex-col items-center gap-4 border-b border-white/5">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-[#f7931a]/10 border-2 border-[#f7931a]/30 flex items-center justify-center">
+                    <Loader2 className="w-7 h-7 text-[#f7931a] animate-spin" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-white">
+                    {isApproving
+                      ? `Approving ${fromToken.symbol}`
+                      : isWrapOperation
+                      ? `Converting ${fromToken.symbol}`
+                      : `Swapping ${fromToken.symbol} for ${toToken.symbol}`}
+                  </p>
+                  <p className="text-sm text-white/50 mt-1">
+                    Confirm in your wallet
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Swap Details */}
+            {!isWrapOperation && (
+              <div className="px-6 pt-4 pb-2">
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <span className="text-sm text-white/60">Fees</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                      <Image
+                        src={fromToken.logoUrl}
+                        alt={fromToken.symbol}
+                        width={20}
+                        height={20}
+                        className="w-full h-full"
+                      />
+                    </div>
+                    <span className="text-white/30 text-xs">&raquo;</span>
+                    <div className="flex items-center gap-1 bg-[#f7931a]/10 rounded-full px-2 py-0.5 border border-[#f7931a]/20">
+                      <Image
+                        src="/assets/Logo.svg"
+                        alt="MEGA"
+                        width={12}
+                        height={12}
+                        className="w-3 h-3"
+                      />
+                      <span className="text-xs font-semibold text-[#f7931a]">
+                        {feePercent}%
+                      </span>
+                    </div>
+                    <span className="text-white/30 text-xs">&raquo;</span>
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                      <Image
+                        src={toToken.logoUrl}
+                        alt={toToken.symbol}
+                        width={20}
+                        height={20}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <span className="text-sm text-white/60">Exchange rate</span>
+                  <span className="text-sm font-medium text-white">
+                    {exchangeRate > 0
+                      ? `1 ${fromToken.symbol} = ${formatAmount(
+                          exchangeRate,
+                          4
+                        )} ${toToken.symbol}`
+                      : "—"}
+                    {exchangeRate > 0 && (
+                      <span className="text-white/40 text-xs ml-1">
+                        ({quote.routeIsStable ? "Stable" : "Volatile"})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <span className="text-sm text-white/60">Price impact</span>
+                  <span
+                    className={`text-sm font-medium ${
+                      quote.priceImpact > 5
+                        ? "text-red-400"
+                        : quote.priceImpact > 1
+                        ? "text-yellow-400"
+                        : "text-white"
+                    }`}
+                  >
+                    {priceImpact}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-sm text-white/60">
+                    Minimum received
+                  </span>
+                  <span className="text-sm font-medium text-white">
+                    {minReceived} {toToken.symbol}
+                    <span className="text-white/40 text-xs ml-1">
+                      ({slippage}% slippage)
+                    </span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Wrap info */}
+            {/* {isWrapOperation && (
+              <div className="px-6 py-4">
+                <div className="bg-[#1a3d32]/40 rounded-xl p-3 border border-white/5">
+                  <p className="text-sm text-white/60 text-center">
+                    1:1 conversion · No fees · No slippage
+                  </p>
+                </div>
+              </div>
+            )} */}
+
+            {/* High price impact warning */}
+            {quote.priceImpact > 5 && !isWrapOperation && (
+              <div className="mx-6 mb-3 bg-red-500/10 rounded-xl p-3 flex items-center gap-2 border border-red-500/20">
+                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <span className="text-xs text-red-400 font-medium">
+                  High price impact! You may receive significantly less than
+                  expected.
+                </span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="px-6 pb-6 pt-3 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowConfirmation(false);
+                  clearError();
+                }}
+                disabled={isSwapping || isApproving}
+                className="flex-1 py-4 rounded-2xl font-bold text-base transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/15 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Change
+              </button>
+              <button
+                onClick={handleConfirmSwap}
+                disabled={isSwapping || isApproving}
+                suppressHydrationWarning
+                className="flex-1 py-4 rounded-2xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2 bg-[#f7931a] hover:bg-[#ff9f2a] text-white shadow-lg shadow-[#f7931a]/25 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
+                <span suppressHydrationWarning>{getConfirmButtonText()}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ─── Main Swap View ────────────────────────────────────────────────────────
   return (
     <>
       <div className="w-full max-w-lg mx-auto">
@@ -512,8 +861,8 @@ export default function Swap() {
           {/* Swap Button */}
           <div className="px-6 pb-6">
             <button
-              disabled={isButtonDisabled}
-              onClick={handleSwapClick}
+              disabled={isMainButtonDisabled}
+              onClick={handleMainButtonClick}
               suppressHydrationWarning
               className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-200 flex items-center justify-center gap-2 ${
                 buttonActive
@@ -521,10 +870,7 @@ export default function Swap() {
                   : "bg-white/10 text-white/40 cursor-not-allowed"
               }`}
             >
-              {(isSwapping || isApproving) && (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              )}
-              <span suppressHydrationWarning>{getButtonText()}</span>
+              <span suppressHydrationWarning>{getMainButtonText()}</span>
             </button>
           </div>
         </div>
