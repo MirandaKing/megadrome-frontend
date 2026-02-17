@@ -66,10 +66,7 @@ export default function Header() {
       <header className="w-full border-b border-white/5 bg-transparent relative z-50">
         <div className="max-w-[1400px] mx-auto px-4 py-4 sm:px-6 sm:py-5 md:px-12 lg:px-20 w-full flex items-center justify-between">
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-1.png"
@@ -77,9 +74,7 @@ export default function Header() {
               width={36}
               height={36}
             />
-            <span className="hidden sm:inline text-white text-xl font-semibold tracking-wide">
-              megadrome
-            </span>
+            <span className="hidden sm:inline text-white text-xl font-semibold tracking-wide">megadrome</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -88,11 +83,10 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`transition-colors text-sm font-medium tracking-wide ${
-                  isActiveLink(link.href)
-                    ? "text-white"
-                    : "text-white/60 hover:text-white"
-                }`}
+                className={`transition-colors text-sm font-medium tracking-wide ${isActiveLink(link.href)
+                  ? "text-white"
+                  : "text-white/60 hover:text-white"
+                  }`}
               >
                 {link.label}
               </Link>
@@ -109,16 +103,10 @@ export default function Header() {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
                   {/* Monad chain indicator */}
-                  <div className="w-2 h-2 rounded-full bg-purple-500" />
-                  <span className="hidden sm:inline">
-                    {truncateAddress(address)}
-                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" className="flex-shrink-0"><path fill="#836EF9" d="M12 3c-2.599 0-9 6.4-9 9s6.401 9 9 9s9-6.401 9-9s-6.401-9-9-9m-1.402 14.146c-1.097-.298-4.043-5.453-3.744-6.549s5.453-4.042 6.549-3.743c1.095.298 4.042 5.453 3.743 6.549c-.298 1.095-5.453 4.042-6.549 3.743" /></svg>
+                  <span className="hidden sm:inline">{truncateAddress(address)}</span>
                   <span className="sm:hidden">{address.slice(0, 4)}...</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </Button>
 
                 {/* Dropdown menu */}
@@ -135,9 +123,7 @@ export default function Header() {
                       <div className="px-4 py-3 border-b border-white/5">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-green-500" />
-                          <span className="text-xs text-white/60">
-                            Connected to Monad
-                          </span>
+                          <span className="text-xs text-white/60">Connected to Monad</span>
                         </div>
                       </div>
 
@@ -152,7 +138,7 @@ export default function Header() {
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
-                          {copied ? "Copied!" : "Copy Address"}
+                          {copied ? 'Copied!' : 'Copy Address'}
                         </button>
 
                         <a
@@ -168,8 +154,8 @@ export default function Header() {
 
                         <button
                           onClick={() => {
-                            disconnect();
-                            setIsDropdownOpen(false);
+                            disconnect()
+                            setIsDropdownOpen(false)
                           }}
                           className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                         >
@@ -234,11 +220,10 @@ export default function Header() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                      isActiveLink(link.href)
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActiveLink(link.href)
                         ? "bg-[#f7931a]/10 text-[#f7931a]"
                         : "text-white/70 hover:text-white hover:bg-white/5"
-                    }`}
+                      }`}
                   >
                     {link.label === "Swap" && (
                       <svg

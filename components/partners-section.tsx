@@ -1,4 +1,7 @@
+"use client"
+
 import Image from "next/image"
+import { motion } from "framer-motion"
 
 const partnerLogos = [
   "Link → abracadabra.svg.svg",
@@ -20,9 +23,23 @@ export default function PartnersSection() {
   return (
     <section className="px-6 py-16 md:px-12 lg:px-20 bg-[#111318]">
       <div className="max-w-[1400px] mx-auto">
-        <div className="flex justify-center items-center gap-8 md:gap-12 mb-10 overflow-x-auto">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-center items-center gap-8 md:gap-12 mb-10 overflow-x-auto"
+        >
           {partnerLogos.map((logo, index) => (
-            <div key={index} className="relative h-8 w-8 flex-shrink-0 flex items-center justify-center opacity-50 hover:opacity-100 transition-all duration-300">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 0.5, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.03 }}
+              whileHover={{ opacity: 1, scale: 1.1 }}
+              className="relative h-8 w-8 flex-shrink-0 flex items-center justify-center cursor-pointer transition-opacity"
+            >
               <Image
                 src={`/assets/partnersSvgs/${logo}`}
                 alt={`Partner ${index}`}
@@ -30,9 +47,9 @@ export default function PartnersSection() {
                 width={32}
                 className="h-8 w-8 object-contain"
               />
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         <div className="border-y border-white/5 py-4">
           <p className="text-center text-white/40 text-xs">
             Data and metrics are openly available on{" "}

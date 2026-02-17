@@ -379,11 +379,11 @@ export default function Vote() {
                 </div>
 
                 {/* Pool Rows */}
-                <div className="divide-y divide-white/5">
+                <div className="flex flex-col gap-1.5 p-4">
                     {filteredPools.map((pool) => (
                         <div
                             key={pool.id}
-                            className="group grid grid-cols-1 gap-4 p-6 hover:bg-white/[0.02] transition-colors sm:grid-cols-3 sm:gap-8 sm:px-8 sm:py-7 lg:grid-cols-6"
+                            className="group grid grid-cols-1 gap-4 px-5 py-5 bg-[#0d1f1a]/80 backdrop-blur-xl hover:border-white/15 border border-white/10 rounded-xl transition-colors sm:grid-cols-3 sm:gap-6 sm:px-6 lg:grid-cols-6"
                         >
                             {/* Pool Info */}
                             <div className="space-y-4 pb-2 sm:col-span-3 sm:border-b sm:border-white/5 sm:pb-8 lg:col-span-2 lg:border-b-0 lg:pb-0">

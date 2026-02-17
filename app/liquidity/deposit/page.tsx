@@ -62,40 +62,40 @@ export default function NewDepositPage() {
                     </div>
 
                     {/* Pool Selection Card */}
-                    <div className="bg-[#0a1612]/80 backdrop-blur-sm rounded-xl border border-white/5 p-5">
-                        <div className="flex items-center justify-between">
+                    <div className="bg-[#0a1612]/80 backdrop-blur-sm rounded-xl border border-white/5 p-4 sm:p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex -space-x-2">
+                                <div className="flex -space-x-2 flex-shrink-0">
                                     <Image
                                         src={mockPool.token0.icon}
                                         alt={mockPool.token0.symbol}
                                         width={36}
                                         height={36}
-                                        className="w-9 h-9 rounded-full border-2 border-[#0a1612]"
+                                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-[#0a1612]"
                                     />
                                     <Image
                                         src={mockPool.token1.icon}
                                         alt={mockPool.token1.symbol}
                                         width={36}
                                         height={36}
-                                        className="w-9 h-9 rounded-full border-2 border-[#0a1612]"
+                                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-[#0a1612]"
                                     />
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-white">{mockPool.token0.symbol} / {mockPool.token1.symbol}</span>
+                                <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                        <span className="font-semibold text-white text-sm sm:text-base">{mockPool.token0.symbol} / {mockPool.token1.symbol}</span>
                                         <span className="text-xs text-white/50 bg-white/5 px-1.5 py-0.5 rounded">✓</span>
                                         <span className="text-xs text-white/50">{mockPool.fee}</span>
-                                        <span className="text-white/30">···</span>
+                                        <span className="text-white/30 hidden sm:inline">···</span>
                                     </div>
-                                    <div className="text-xs text-[#f7931a]">🟦 {mockPool.type}</div>
+                                    <div className="text-xs text-[#f7931a] truncate">🟦 {mockPool.type}</div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button className="px-3 py-1.5 rounded-lg border border-[#f7931a]/30 text-[#f7931a] text-sm font-medium hover:bg-[#f7931a]/10 transition-colors">
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                                <button className="px-3 py-1.5 rounded-lg border border-[#f7931a]/30 text-[#f7931a] text-xs sm:text-sm font-medium hover:bg-[#f7931a]/10 transition-colors">
                                     Pool info
                                 </button>
-                                <button className="px-3 py-1.5 rounded-lg border border-[#f7931a]/30 text-[#f7931a] text-sm font-medium hover:bg-[#f7931a]/10 transition-colors">
+                                <button className="px-3 py-1.5 rounded-lg border border-[#f7931a]/30 text-[#f7931a] text-xs sm:text-sm font-medium hover:bg-[#f7931a]/10 transition-colors">
                                     Change
                                 </button>
                             </div>
@@ -120,12 +120,12 @@ export default function NewDepositPage() {
                     </div>
 
                     {/* Set Price Range Card */}
-                    <div className="bg-[#0a1612]/80 backdrop-blur-sm rounded-xl border border-white/5 p-5">
-                        <div className="flex items-center justify-between mb-4">
+                    <div className="bg-[#0a1612]/80 backdrop-blur-sm rounded-xl border border-white/5 p-4 sm:p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                             <span className="text-sm font-semibold text-white">Set price range</span>
-                            <div className="flex items-center gap-3 text-xs">
-                                <span className="text-white/50">1.0 {mockPool.token0.symbol} = {mockPool.currentPrice} {mockPool.token1.symbol}</span>
-                                <span className="text-white/40">~$3,082.84</span>
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+                                <span className="text-white/50 text-[11px] sm:text-xs">1.0 {mockPool.token0.symbol} = {mockPool.currentPrice} {mockPool.token1.symbol}</span>
+                                <span className="text-white/40 hidden sm:inline">~$3,082.84</span>
                                 <div className="flex bg-[#1a2f2a] rounded-lg p-0.5">
                                     <button
                                         onClick={() => setActiveToken("token0")}
@@ -144,20 +144,20 @@ export default function NewDepositPage() {
                         </div>
 
                         {/* Range Presets */}
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex gap-1 bg-[#1a2f2a] rounded-lg p-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                            <div className="flex overflow-x-auto gap-1 bg-[#1a2f2a] rounded-lg p-1 -mx-1 px-1 scrollbar-hide">
                                 {["0.01", "0.03", "0.07", "full", "auto"].map((preset) => (
                                     <button
                                         key={preset}
                                         onClick={() => setRangePreset(preset)}
-                                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${rangePreset === preset ? "bg-[#f7931a] text-white" : "text-white/50 hover:text-white"}`}
+                                        className={`px-2 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${rangePreset === preset ? "bg-[#f7931a] text-white" : "text-white/50 hover:text-white"}`}
                                     >
                                         {preset === "full" ? "Full" : preset === "auto" ? "Autopilot" : `±${preset}%`}
                                         {preset === "auto" && <span className="text-[#f7931a] ml-0.5">*</span>}
                                     </button>
                                 ))}
                             </div>
-                            <span className="text-xs text-[#f7931a]">{mockPool.apr}% APR</span>
+                            <span className="text-xs text-[#f7931a] flex-shrink-0">{mockPool.apr}% APR</span>
                         </div>
 
                         {/* Price Chart */}
@@ -196,9 +196,9 @@ export default function NewDepositPage() {
                         </div>
 
                         {/* Low/High Price Cards */}
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {/* Low Price */}
-                            <div className="bg-[#1a2f2a] rounded-xl p-4">
+                            <div className="bg-[#1a2f2a] rounded-xl p-3 sm:p-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs text-white/50">Low</span>
                                     <div className="flex gap-1">
@@ -213,12 +213,12 @@ export default function NewDepositPage() {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="text-lg font-mono font-semibold text-white truncate">{lowPrice}</div>
+                                <div className="text-base sm:text-lg font-mono font-semibold text-white truncate">{lowPrice}</div>
                                 <div className="text-xs text-white/40">~$3,082.34</div>
                             </div>
 
                             {/* High Price */}
-                            <div className="bg-[#1a2f2a] rounded-xl p-4">
+                            <div className="bg-[#1a2f2a] rounded-xl p-3 sm:p-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs text-[#f7931a]">High</span>
                                     <div className="flex gap-1">
@@ -233,7 +233,7 @@ export default function NewDepositPage() {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="text-lg font-mono font-semibold text-white truncate">{highPrice}</div>
+                                <div className="text-base sm:text-lg font-mono font-semibold text-white truncate">{highPrice}</div>
                                 <div className="text-xs text-white/40">~$3,083.44</div>
                             </div>
                         </div>
