@@ -253,7 +253,7 @@ export const ABIS = {
       outputs: [{ name: "", type: "uint256" }],
     },
     {
-      name: "increase_amount",
+      name: "increaseAmount",
       type: "function",
       stateMutability: "nonpayable",
       inputs: [
@@ -263,12 +263,33 @@ export const ABIS = {
       outputs: [],
     },
     {
-      name: "increase_unlock_time",
+      name: "increaseUnlockTime",
       type: "function",
       stateMutability: "nonpayable",
       inputs: [
         { name: "_tokenId", type: "uint256" },
-        { name: "_lock_duration", type: "uint256" },
+        { name: "_lockDuration", type: "uint256" },
+      ],
+      outputs: [],
+    },
+    {
+      name: "merge",
+      type: "function",
+      stateMutability: "nonpayable",
+      inputs: [
+        { name: "_from", type: "uint256" },
+        { name: "_to", type: "uint256" },
+      ],
+      outputs: [],
+    },
+    {
+      name: "transferFrom",
+      type: "function",
+      stateMutability: "nonpayable",
+      inputs: [
+        { name: "_from", type: "address" },
+        { name: "_to", type: "address" },
+        { name: "_tokenId", type: "uint256" },
       ],
       outputs: [],
     },
@@ -294,13 +315,29 @@ export const ABIS = {
       outputs: [{ type: "address" }],
     },
     {
+      name: "tokenOfOwnerByIndex",
+      type: "function",
+      stateMutability: "view",
+      inputs: [
+        { name: "_owner", type: "address" },
+        { name: "_tokenIndex", type: "uint256" },
+      ],
+      outputs: [{ type: "uint256" }],
+    },
+    {
       name: "locked",
       type: "function",
       stateMutability: "view",
       inputs: [{ name: "_tokenId", type: "uint256" }],
       outputs: [
-        { name: "amount", type: "int128" },
-        { name: "end", type: "uint256" },
+        {
+          name: "",
+          type: "tuple",
+          components: [
+            { name: "amount", type: "int128" },
+            { name: "end", type: "uint256" },
+          ],
+        },
       ],
     },
     {
@@ -308,6 +345,13 @@ export const ABIS = {
       type: "function",
       stateMutability: "view",
       inputs: [{ name: "_tokenId", type: "uint256" }],
+      outputs: [{ type: "uint256" }],
+    },
+    {
+      name: "supply",
+      type: "function",
+      stateMutability: "view",
+      inputs: [],
       outputs: [{ type: "uint256" }],
     },
   ],
@@ -494,6 +538,38 @@ export const ABIS = {
       type: "function",
       stateMutability: "view",
       inputs: [{ name: "account", type: "address" }],
+      outputs: [{ type: "uint256" }],
+    },
+  ],
+  RewardsDistributor: [
+    {
+      name: "claimable",
+      type: "function",
+      stateMutability: "view",
+      inputs: [{ name: "_tokenId", type: "uint256" }],
+      outputs: [{ type: "uint256" }],
+    },
+    {
+      name: "claim",
+      type: "function",
+      stateMutability: "nonpayable",
+      inputs: [{ name: "_tokenId", type: "uint256" }],
+      outputs: [{ type: "uint256" }],
+    },
+  ],
+  Minter: [
+    {
+      name: "weekly",
+      type: "function",
+      stateMutability: "view",
+      inputs: [],
+      outputs: [{ type: "uint256" }],
+    },
+    {
+      name: "calculate_rebate",
+      type: "function",
+      stateMutability: "view",
+      inputs: [{ name: "_minted", type: "uint256" }],
       outputs: [{ type: "uint256" }],
     },
   ],
