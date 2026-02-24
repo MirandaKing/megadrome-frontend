@@ -13,8 +13,8 @@ export const monad: Chain = {
     decimals: 18,
   },
   rpcUrls: {
-    default: { http: ["https://rpc.monad.xyz"] },
-    public: { http: ["https://rpc.monad.xyz"] },
+    default: { http: ["https://monad-mainnet.drpc.org"] },
+    public: { http: ["https://monad-mainnet.drpc.org"] },
   },
   blockExplorers: {
     default: { name: "MonadScan", url: "https://monadscan.com" },
@@ -40,7 +40,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [monad.id]: http()
+    [monad.id]: http("https://monad-mainnet.drpc.org"),
   },
 });
 
