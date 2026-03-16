@@ -33,6 +33,7 @@ const GET_POOLS_QUERY = `
       token0Price
       token1Price
       gaugeIsAlive
+      tickSpacing
       lastUpdatedTimestamp
     }
     Token(limit: 200) {

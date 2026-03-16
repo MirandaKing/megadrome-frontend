@@ -41,7 +41,9 @@ function useTokenBalances(tokens: TokenMeta[]) {
         address: t.address as Address,
         abi: ERC20_ABI,
         functionName: "balanceOf" as const,
-        args: [address ?? "0x0000000000000000000000000000000000000000"] as [Address],
+        args: [address ?? "0x0000000000000000000000000000000000000000"] as [
+          Address
+        ],
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [tokens.map((t) => t.address).join(","), address]
@@ -78,7 +80,8 @@ function formatBalance(raw: bigint | undefined, decimals: number): string {
   if (!raw || raw === BigInt(0)) return "0";
   const value = formatBalanceNum(raw, decimals);
   if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-  if (value >= 1e3) return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  if (value >= 1e3)
+    return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
   if (value >= 1) return value.toFixed(4).replace(/\.?0+$/, "");
   if (value > 0) return value.toFixed(6).replace(/\.?0+$/, "");
   return "0";
@@ -86,8 +89,9 @@ function formatBalance(raw: bigint | undefined, decimals: number): string {
 
 /** Format price with smart precision */
 function formatPrice(priceUSD: number): string {
-  if (priceUSD === 0) return "—";
-  if (priceUSD >= 1000) return `$${priceUSD.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  if (priceUSD === 0) return "-";
+  if (priceUSD >= 1000)
+    return `$${priceUSD.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   if (priceUSD >= 1) return `$${priceUSD.toFixed(4)}`;
   if (priceUSD >= 0.0001) return `$${priceUSD.toFixed(6)}`;
   return `$${priceUSD.toExponential(2)}`;
@@ -95,10 +99,11 @@ function formatPrice(priceUSD: number): string {
 
 /** Format TVL compactly */
 function formatTVL(tvlUSD: number): string {
-  if (tvlUSD === 0) return "—";
+  if (tvlUSD === 0) return "-";
   if (tvlUSD >= 1e9) return `$${(tvlUSD / 1e9).toFixed(2)}B`;
   if (tvlUSD >= 1e6) return `$${(tvlUSD / 1e6).toFixed(2)}M`;
-  if (tvlUSD >= 1e3) return `$${tvlUSD.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  if (tvlUSD >= 1e3)
+    return `$${tvlUSD.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
   return `$${tvlUSD.toFixed(2)}`;
 }
 
@@ -154,7 +159,9 @@ function FilterDropdown({
         <div className="flex items-center gap-2 text-xs font-semibold text-[#f7931a]">
           {selectedLabel}
           <ChevronDown
-            className={`w-2.5 h-2.5 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`w-2.5 h-2.5 transition-transform ${
+              open ? "rotate-180" : ""
+            }`}
           />
         </div>
       </button>
@@ -262,19 +269,19 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div className="lg:text-sm text-white">
           {pool.volumeUSD > 0 ? (
             pool.volume
-          ) : pool.volume0Human !== "—" || pool.volume1Human !== "—" ? (
+          ) : pool.volume0Human !== "-" || pool.volume1Human !== "-" ? (
             <span className="text-white/60">
               {pool.volume0Human} {pool.token0.symbol}
             </span>
           ) : (
-            "—"
+            "-"
           )}
         </div>
         <div className="hidden sm:block space-y-0.5 text-white/50 text-[11px]">
           {pool.numberOfSwaps > 0 && (
             <div className="text-[#f7931a]/70">{pool.numberOfSwaps} swaps</div>
           )}
-          {pool.volume0Human !== "—" && pool.volumeUSD === 0 && (
+          {pool.volume0Human !== "-" && pool.volumeUSD === 0 && (
             <div>
               {pool.volume1Human}{" "}
               <span className="opacity-70">{pool.token1.symbol}</span>
@@ -289,12 +296,12 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div className="lg:text-sm text-white">
           {pool.feesUSD > 0 ? (
             pool.fees
-          ) : pool.fees0Human !== "—" ? (
+          ) : pool.fees0Human !== "-" ? (
             <span className="text-white/60">
               {pool.fees0Human} {pool.token0.symbol}
             </span>
           ) : (
-            "—"
+            "-"
           )}
         </div>
       </div>
@@ -304,19 +311,19 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div className="text-white/50 lg:hidden">TVL</div>
         <div className="lg:text-sm text-white">{pool.tvl}</div>
         <div className="hidden sm:block space-y-0.5 text-white/50 text-[11px]">
-          {pool.reserve0Human !== "—" && (
+          {pool.reserve0Human !== "-" && (
             <div>
               {pool.reserve0Human}{" "}
               <span className="opacity-70">{pool.token0.symbol}</span>
             </div>
           )}
-          {pool.reserve1Human !== "—" && (
+          {pool.reserve1Human !== "-" && (
             <div>
               {pool.reserve1Human}{" "}
               <span className="opacity-70">{pool.token1.symbol}</span>
             </div>
           )}
-          {pool.reserve0Human === "—" && pool.reserve1Human === "—" && (
+          {pool.reserve0Human === "-" && pool.reserve1Human === "-" && (
             <div className="text-white/30 italic">No liquidity yet</div>
           )}
         </div>
@@ -327,7 +334,9 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div className="text-white/50 lg:hidden">Emissions</div>
         <div className="flex items-center gap-1.5">
           <div
-            className={`w-1.5 h-1.5 rounded-full ${pool.gaugeIsAlive ? "bg-green-400" : "bg-white/20"}`}
+            className={`w-1.5 h-1.5 rounded-full ${
+              pool.gaugeIsAlive ? "bg-green-400" : "bg-white/20"
+            }`}
           />
           <span className="text-xs text-white/60">
             {pool.gaugeIsAlive ? "Gauge active" : "No gauge"}
@@ -385,7 +394,8 @@ function TokenRow({
   isConnected: boolean;
 }) {
   const tvlUSD = (token as TokenMeta & { tvlUSD?: number }).tvlUSD ?? 0;
-  const balanceStr = balance !== undefined ? formatBalance(balance, token.decimals) : null;
+  const balanceStr =
+    balance !== undefined ? formatBalance(balance, token.decimals) : null;
   const balanceUSD =
     balance !== undefined && token.priceUSD > 0
       ? formatTVL(formatBalanceNum(balance, token.decimals) * token.priceUSD)
@@ -444,27 +454,38 @@ function TokenRow({
 
       {/* Price */}
       <div>
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">Price</div>
-        <div className="text-sm font-semibold text-white">{formatPrice(token.priceUSD)}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">
+          Price
+        </div>
+        <div className="text-sm font-semibold text-white">
+          {formatPrice(token.priceUSD)}
+        </div>
       </div>
 
       {/* TVL */}
       <div>
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">TVL</div>
-        <div className="text-sm font-semibold text-white">{formatTVL(tvlUSD)}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">
+          TVL
+        </div>
+        <div className="text-sm font-semibold text-white">
+          {formatTVL(tvlUSD)}
+        </div>
       </div>
 
       {/* Balance */}
       <div className="text-right sm:text-left">
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">Balance</div>
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">
+          Balance
+        </div>
         {!isConnected ? (
-          <div className="text-xs text-white/30">—</div>
+          <div className="text-xs text-white/30">-</div>
         ) : balanceStr === null ? (
           <div className="h-4 w-16 rounded bg-white/10 animate-pulse" />
         ) : (
           <>
             <div className="text-sm font-semibold text-white">
-              {balanceStr} <span className="text-white/50 text-xs">{token.symbol}</span>
+              {balanceStr}{" "}
+              <span className="text-white/50 text-xs">{token.symbol}</span>
             </div>
             {balanceUSD && (
               <div className="text-xs text-white/40 mt-0.5">{balanceUSD}</div>
@@ -488,7 +509,8 @@ export default function Liquidity() {
   const [activeTab, setActiveTab] = useState<"pools" | "tokens">("pools");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("any");
-  const [volatilityFilter, setVolatilityFilter] = useState<VolatilityFilter>("any");
+  const [volatilityFilter, setVolatilityFilter] =
+    useState<VolatilityFilter>("any");
   const [sortField, setSortField] = useState<SortField>("tvl");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -542,22 +564,31 @@ export default function Liquidity() {
     const dir = sortDir === "desc" ? -1 : 1;
     result.sort((a, b) => {
       switch (sortField) {
-        case "volume": return dir * (b.volumeUSD - a.volumeUSD);
-        case "fees": return dir * (b.feesUSD - a.feesUSD);
-        case "emissions": return dir * (b.emissionsUSD - a.emissionsUSD);
-        default: return dir * (b.tvlUSD - a.tvlUSD);
+        case "volume":
+          return dir * (b.volumeUSD - a.volumeUSD);
+        case "fees":
+          return dir * (b.feesUSD - a.feesUSD);
+        case "emissions":
+          return dir * (b.emissionsUSD - a.emissionsUSD);
+        default:
+          return dir * (b.tvlUSD - a.tvlUSD);
       }
     });
 
     return result;
-  }, [pools, searchQuery, tokenFilter, typeFilter, volatilityFilter, sortField, sortDir]);
-
+  }, [
+    pools,
+    searchQuery,
+    tokenFilter,
+    typeFilter,
+    volatilityFilter,
+    sortField,
+    sortDir,
+  ]);
 
   // Has any non-default filter active?
   const anyFilterActive =
-    tokenFilter !== "all" ||
-    typeFilter !== "any" ||
-    volatilityFilter !== "any";
+    tokenFilter !== "all" || typeFilter !== "any" || volatilityFilter !== "any";
 
   const resetFilters = () => {
     setTokenFilter("all");
@@ -567,7 +598,8 @@ export default function Liquidity() {
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ArrowDown className="w-3 h-3 opacity-30" />;
+    if (sortField !== field)
+      return <ArrowDown className="w-3 h-3 opacity-30" />;
     return sortDir === "desc" ? (
       <ArrowDown className="w-3 h-3 text-[#f7931a]" />
     ) : (
@@ -779,25 +811,33 @@ export default function Liquidity() {
               <div className="col-span-2">Pools</div>
               <button
                 onClick={() => handleSort("volume")}
-                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${sortField === "volume" ? "text-white" : ""}`}
+                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${
+                  sortField === "volume" ? "text-white" : ""
+                }`}
               >
                 Volume <SortIcon field="volume" />
               </button>
               <button
                 onClick={() => handleSort("fees")}
-                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${sortField === "fees" ? "text-white" : ""}`}
+                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${
+                  sortField === "fees" ? "text-white" : ""
+                }`}
               >
                 Fees <SortIcon field="fees" />
               </button>
               <button
                 onClick={() => handleSort("tvl")}
-                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${sortField === "tvl" ? "text-white" : ""}`}
+                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${
+                  sortField === "tvl" ? "text-white" : ""
+                }`}
               >
                 TVL <SortIcon field="tvl" />
               </button>
               <button
                 onClick={() => handleSort("emissions")}
-                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${sortField === "emissions" ? "text-white" : ""}`}
+                className={`flex items-center justify-end gap-1 hover:text-white transition-colors ${
+                  sortField === "emissions" ? "text-white" : ""
+                }`}
               >
                 Emissions <SortIcon field="emissions" />
               </button>
@@ -821,7 +861,9 @@ export default function Liquidity() {
                   <AlertCircle className="w-5 h-5 shrink-0" />
                   <div>
                     <div className="font-semibold">Failed to load pools</div>
-                    <div className="text-red-400/70 text-xs mt-0.5">{error}</div>
+                    <div className="text-red-400/70 text-xs mt-0.5">
+                      {error}
+                    </div>
                   </div>
                 </div>
               )}

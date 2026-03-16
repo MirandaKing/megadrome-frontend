@@ -92,7 +92,7 @@ export function useSwap({
   const routingAddressIn = tokenIn ? getRoutingAddress(tokenIn) : undefined;
   const routingAddressOut = tokenOut ? getRoutingAddress(tokenOut) : undefined;
 
-  // Raw (non-debounced) bigint — used for wrap operations so output is instant
+  // Raw (non-debounced) bigint - used for wrap operations so output is instant
   const rawAmountInBigInt = useMemo(() => {
     if (!amountIn || !tokenIn) return BigInt(0);
     try {
@@ -102,7 +102,7 @@ export function useSwap({
     }
   }, [amountIn, tokenIn]);
 
-  // Debounced bigint — used for router RPC calls to avoid excessive requests
+  // Debounced bigint - used for router RPC calls to avoid excessive requests
   const amountInBigInt = useMemo(() => {
     if (!debouncedAmountIn || !tokenIn) return BigInt(0);
     try {
@@ -281,12 +281,16 @@ export function useSwap({
 
       // Extract final amounts from both routes
       const volatileOut =
-        volatileAmounts && Array.isArray(volatileAmounts) && volatileAmounts.length > 0
+        volatileAmounts &&
+        Array.isArray(volatileAmounts) &&
+        volatileAmounts.length > 0
           ? volatileAmounts[volatileAmounts.length - 1]
           : BigInt(0);
 
       const stableOut =
-        stableAmounts && Array.isArray(stableAmounts) && stableAmounts.length > 0
+        stableAmounts &&
+        Array.isArray(stableAmounts) &&
+        stableAmounts.length > 0
           ? stableAmounts[stableAmounts.length - 1]
           : BigInt(0);
 
@@ -531,7 +535,9 @@ export function useSwap({
   const swap = useCallback(async () => {
     if (!tokenIn || !tokenOut || !address) return;
     // Use rawAmountInBigInt for wraps (instant), amountInBigInt for swaps (debounced)
-    const effectiveAmount = isWrapOperation ? rawAmountInBigInt : amountInBigInt;
+    const effectiveAmount = isWrapOperation
+      ? rawAmountInBigInt
+      : amountInBigInt;
     if (effectiveAmount === BigInt(0)) return;
     setError(null);
 
@@ -664,7 +670,7 @@ export function useSwap({
   return {
     amountOut,
     quote: {
-      // Wrap operations are instant (no RPC quote needed) — never show loading
+      // Wrap operations are instant (no RPC quote needed) - never show loading
       isLoading: isWrapOperation ? false : quoteLoading,
       error: isWrapOperation ? null : (quoteError as Error | null),
       priceImpact: isWrapOperation ? 0 : priceImpact,

@@ -141,14 +141,14 @@ export function useLocks() {
   });
 
   // Rebase APR = (weeklyRebase / totalSupply) * 52 * 100
-  // Protocol-wide rate — the same for all locks
+  // Protocol-wide rate - the same for all locks
   const rebaseApr = useMemo(() => {
     if (!weeklyRebase || !totalSupply || totalSupply === BigInt(0)) return null;
     const aprBps = (weeklyRebase * BigInt(52) * BigInt(10000)) / totalSupply;
     return `${(Number(aprBps) / 100).toFixed(2)}%`;
   }, [weeklyRebase, totalSupply]);
 
-  // Claim rebase for a lock — auto-compounds back into the lock via RewardsDistributor
+  // Claim rebase for a lock - auto-compounds back into the lock via RewardsDistributor
   const { writeContract, isPending: isClaiming } = useWriteContract();
 
   const claim = (tokenId: bigint) => {

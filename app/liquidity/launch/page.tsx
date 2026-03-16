@@ -63,19 +63,22 @@ export default function LaunchPoolPage() {
                                 </div>
 
                                 {/* Advanced Option */}
-                                <div className="bg-[#0d1f1a] rounded-2xl border border-white/10 p-5 flex flex-col">
+                                <div className="relative group bg-[#0d1f1a] rounded-2xl border border-white/5 p-5 flex flex-col opacity-50 cursor-not-allowed select-none">
                                     <div className="flex items-center gap-2 mb-3">
                                         <h3 className="text-lg font-semibold text-white">Advanced</h3>
                                     </div>
                                     <p className="text-sm text-white/50 mb-6 flex-1">
                                         For users who want more choices and greater control over their pool strategy.
                                     </p>
-                                    <Link
-                                        href="/liquidity/launch/advanced"
-                                        className="w-full py-3 rounded-2xl bg-[#f7931a] hover:bg-[#ff9f2a] text-white text-sm font-bold text-center transition-all duration-200 shadow-lg shadow-[#f7931a]/25"
-                                    >
+                                    <div className="w-full py-3 rounded-2xl bg-white/10 text-white/40 text-sm font-bold text-center">
                                         Start
-                                    </Link>
+                                    </div>
+                                    {/* Coming Soon tooltip */}
+                                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl">
+                                        <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg">
+                                            Coming Soon
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

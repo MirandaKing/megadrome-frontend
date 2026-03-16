@@ -1,25 +1,25 @@
 import { http, createConfig } from "wagmi";
 import { injected, walletConnect } from "wagmi/connectors";
-import { mainnet } from "wagmi/chains";
+import { monad } from "wagmi/chains";
 import { type Chain } from "viem";
 
 // Define Monad chain
-export const monad: Chain = {
-  id: 143,
-  name: "Monad",
-  nativeCurrency: {
-    name: "MON",
-    symbol: "MON",
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ["https://monad-mainnet.drpc.org"] },
-    public: { http: ["https://monad-mainnet.drpc.org"] },
-  },
-  blockExplorers: {
-    default: { name: "MonadScan", url: "https://monadscan.com" },
-  },
-};
+// export const monad: Chain = {
+//   id: 143,
+//   name: "Monad",
+//   nativeCurrency: {
+//     name: "MON",
+//     symbol: "MON",
+//     decimals: 18,
+//   },
+//   rpcUrls: {
+//     default: { http: ["https://monad-mainnet.drpc.org"] },
+//     public: { http: ["https://monad-mainnet.drpc.org"] },
+//   },
+//   blockExplorers: {
+//     default: { name: "MonadScan", url: "https://monadscan.com" },
+//   },
+// };
 
 // WalletConnect Project ID - Replace with your own
 const projectId =
@@ -40,7 +40,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [monad.id]: http("https://monad-mainnet.drpc.org"),
+    [monad.id]: http("https://monad-mainnet-rpc.spidernode.net"),
   },
 });
 

@@ -41,6 +41,7 @@ export interface RawPool {
   token0Price: string;
   token1Price: string;
   gaugeIsAlive: boolean;
+  tickSpacing: string;
   lastUpdatedTimestamp: string;
 }
 
@@ -85,6 +86,7 @@ export interface PoolInfo {
   reserve1Num: number; // raw numeric amount of token1 in pool
   numberOfSwaps: number;
   gaugeIsAlive: boolean;
+  tickSpacing: number;
   /** true when both tokens are verified */
   verified: boolean;
 }
@@ -122,7 +124,7 @@ function getTokenMeta(
     };
   }
 
-  // 2. Envio Token entity — use for symbol/decimals/price
+  // 2. Envio Token entity - use for symbol/decimals/price
   const envioToken = envioTokenMap.get(addr);
   const localToken = getTokenByAddress(address as Address);
 
@@ -153,7 +155,7 @@ function getTokenMeta(
     };
   }
 
-  // 4. Unknown token — use truncated address as symbol
+  // 4. Unknown token - use truncated address as symbol
   return {
     symbol: address.slice(0, 6) + "…" + address.slice(-4),
     logoUrl: "",
@@ -178,7 +180,10 @@ function bigIntToUSD(raw: string | null | undefined): number {
   }
 }
 
-function bigIntToTokenAmount(raw: string | null | undefined, decimals: number): number {
+function bigIntToTokenAmount(
+  raw: string | null | undefined,
+  decimals: number
+): number {
   if (!raw || raw === "0") return 0;
   try {
     if (decimals <= 18) {
@@ -192,15 +197,16 @@ function bigIntToTokenAmount(raw: string | null | undefined, decimals: number): 
 }
 
 function compactUSD(value: number): string {
-  if (value === 0) return "—";
+  if (value === 0) return "-";
   if (value >= 1e9) return `~$${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `~$${(value / 1e6).toFixed(2)}M`;
-  if (value >= 1e3) return `~$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  if (value >= 1e3)
+    return `~$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   return `~$${value.toFixed(2)}`;
 }
 
 function compactTokenAmount(value: number): string {
-  if (value === 0) return "—";
+  if (value === 0) return "-";
   if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
   if (value >= 1e3)
@@ -226,7 +232,11 @@ function formatFee(baseFee: string, currentFee: string, isCL: boolean): string {
   return `${(fee / 100).toFixed(2)}%`;
 }
 
-function getPoolTypeLabel(name: string, isStable: boolean, isCL: boolean): string {
+function getPoolTypeLabel(
+  name: string,
+  isStable: boolean,
+  isCL: boolean
+): string {
   if (isCL) {
     const m = name.match(/^CL(\d+)-/);
     const ts = m ? ` ${m[1]}` : "";
@@ -282,6 +292,7 @@ function mapPool(raw: RawPool, envioTokenMap: Map<string, RawToken>): PoolInfo {
     reserve1Num: r1,
     numberOfSwaps,
     gaugeIsAlive: raw.gaugeIsAlive,
+    tickSpacing: Number(raw.tickSpacing ?? "0"),
     verified: token0.verified && token1.verified,
   };
 }
@@ -314,7 +325,9 @@ export function usePools() {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Build address → RawToken map for fast lookup

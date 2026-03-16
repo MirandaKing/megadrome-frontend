@@ -76,7 +76,10 @@ export default function Swap() {
 
   // Handlers
   const handleFromAmountChange = (value: string) => {
-    if (value === "") { setFromAmount(value); return; }
+    if (value === "") {
+      setFromAmount(value);
+      return;
+    }
     const decimals = fromToken.decimals;
     const regex = new RegExp(`^\\d*\\.?\\d{0,${decimals}}$`);
     if (regex.test(value)) {
@@ -246,25 +249,35 @@ export default function Swap() {
                     width={44}
                     height={44}
                     className="w-full h-full"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/assets/Logo.svg"; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/assets/Logo.svg";
+                    }}
                   />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold text-white truncate">
-                    {formatAmount(successState.fromAmount, 6)} {successState.fromSymbol}
+                    {formatAmount(successState.fromAmount, 6)}{" "}
+                    {successState.fromSymbol}
                   </p>
                   <p className="text-sm text-white/40">You paid</p>
                 </div>
               </div>
               <div className="flex-shrink-0 text-white/40">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 10h12M12 5l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M4 10h12M12 5l5 5-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </div>
               <div className="flex items-center gap-3 min-w-0 justify-end">
                 <div className="min-w-0 text-right">
                   <p className="text-xl font-bold text-[#f7931a] truncate">
-                    {formatAmount(successState.toAmount, 6)} {successState.toSymbol}
+                    {formatAmount(successState.toAmount, 6)}{" "}
+                    {successState.toSymbol}
                   </p>
                   <p className="text-sm text-white/40">You received</p>
                 </div>
@@ -275,7 +288,9 @@ export default function Swap() {
                     width={44}
                     height={44}
                     className="w-full h-full"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/assets/Logo.svg"; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/assets/Logo.svg";
+                    }}
                   />
                 </div>
               </div>
@@ -288,7 +303,13 @@ export default function Swap() {
               {/* Green checkmark */}
               <div className="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center">
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                  <path d="M6 14l6 6 10-12" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M6 14l6 6 10-12"
+                    stroke="#22c55e"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </div>
 
@@ -312,7 +333,13 @@ export default function Swap() {
                 >
                   View confirmation
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path
+                      d="M3 7h8M7 3l4 4-4 4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </a>
               )}
@@ -474,7 +501,7 @@ export default function Swap() {
                           exchangeRate,
                           4
                         )} ${toToken.symbol}`
-                      : "—"}
+                      : "-"}
                     {exchangeRate > 0 && (
                       <span className="text-white/40 text-xs ml-1">
                         ({quote.routeIsStable ? "Stable" : "Volatile"})
@@ -762,7 +789,7 @@ export default function Swap() {
                     ) : quote.isLoading ? (
                       "Loading..."
                     ) : (
-                      "—"
+                      "-"
                     )}
                   </span>
                 </div>

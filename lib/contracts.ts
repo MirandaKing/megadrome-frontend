@@ -24,6 +24,8 @@ export const ADDRESSES: Record<
     minter: Address;
     rewardsDistributor: Address;
     weth: Address;
+    clPoolFactory: Address;
+    positionManager: Address;
   }
 > = {
   // Monad Mainnet (143)
@@ -36,6 +38,8 @@ export const ADDRESSES: Record<
     minter: process.env.NEXT_PUBLIC_MINTER as Address,
     rewardsDistributor: process.env.NEXT_PUBLIC_DISTRIBUTOR as Address,
     weth: MONAD_CONTRACTS.WMON,
+    clPoolFactory: process.env.NEXT_PUBLIC_CL_POOL_FACTORY as Address,
+    positionManager: process.env.NEXT_PUBLIC_CL_POSITION_MANAGER as Address,
   },
 };
 
@@ -199,6 +203,25 @@ export const ABIS = {
         { name: "deadline", type: "uint256" },
       ],
       outputs: [{ name: "amounts", type: "uint256[]" }],
+    },
+    {
+      name: "addLiquidityETH",
+      type: "function",
+      stateMutability: "payable",
+      inputs: [
+        { name: "token", type: "address" },
+        { name: "stable", type: "bool" },
+        { name: "amountTokenDesired", type: "uint256" },
+        { name: "amountTokenMin", type: "uint256" },
+        { name: "amountETHMin", type: "uint256" },
+        { name: "to", type: "address" },
+        { name: "deadline", type: "uint256" },
+      ],
+      outputs: [
+        { name: "amountToken", type: "uint256" },
+        { name: "amountETH", type: "uint256" },
+        { name: "liquidity", type: "uint256" },
+      ],
     },
     {
       name: "addLiquidity",
@@ -517,6 +540,17 @@ export const ABIS = {
       inputs: [{ name: "pair", type: "address" }],
       outputs: [{ type: "bool" }],
     },
+    {
+      name: "createPair",
+      type: "function",
+      stateMutability: "nonpayable",
+      inputs: [
+        { name: "tokenA", type: "address" },
+        { name: "tokenB", type: "address" },
+        { name: "stable", type: "bool" },
+      ],
+      outputs: [{ type: "address" }],
+    },
   ],
   WMON: [
     {
@@ -571,6 +605,59 @@ export const ABIS = {
       stateMutability: "view",
       inputs: [{ name: "_minted", type: "uint256" }],
       outputs: [{ type: "uint256" }],
+    },
+  ],
+  CLPoolFactory: [
+    {
+      name: "getPool",
+      type: "function",
+      stateMutability: "view",
+      inputs: [
+        { name: "tokenA", type: "address" },
+        { name: "tokenB", type: "address" },
+        { name: "tickSpacing", type: "int24" },
+      ],
+      outputs: [{ type: "address" }],
+    },
+  ],
+  NonfungiblePositionManager: [
+    {
+      name: "mint",
+      type: "function",
+      stateMutability: "payable",
+      inputs: [
+        {
+          name: "params",
+          type: "tuple",
+          components: [
+            { name: "token0", type: "address" },
+            { name: "token1", type: "address" },
+            { name: "tickSpacing", type: "int24" },
+            { name: "tickLower", type: "int24" },
+            { name: "tickUpper", type: "int24" },
+            { name: "amount0Desired", type: "uint256" },
+            { name: "amount1Desired", type: "uint256" },
+            { name: "amount0Min", type: "uint256" },
+            { name: "amount1Min", type: "uint256" },
+            { name: "recipient", type: "address" },
+            { name: "deadline", type: "uint256" },
+            { name: "sqrtPriceX96", type: "uint160" },
+          ],
+        },
+      ],
+      outputs: [
+        { name: "tokenId", type: "uint256" },
+        { name: "liquidity", type: "uint128" },
+        { name: "amount0", type: "uint256" },
+        { name: "amount1", type: "uint256" },
+      ],
+    },
+    {
+      name: "refundETH",
+      type: "function",
+      stateMutability: "payable",
+      inputs: [],
+      outputs: [],
     },
   ],
 } as const;
