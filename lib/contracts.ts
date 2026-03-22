@@ -379,6 +379,15 @@ export const ABIS = {
     },
   ],
   Voter: [
+    // ── Custom errors ──
+    { name: "AlreadyVotedOrDeposited", type: "error", inputs: [] },
+    { name: "NotApprovedOrOwner", type: "error", inputs: [] },
+    { name: "NotWhitelistedNFT", type: "error", inputs: [] },
+    { name: "TooManyPools", type: "error", inputs: [] },
+    { name: "UnequalLengths", type: "error", inputs: [] },
+    { name: "InactiveManagedNFT", type: "error", inputs: [] },
+    { name: "ZeroAddress", type: "error", inputs: [] },
+    { name: "SpecialVotingWindow", type: "error", inputs: [] },
     {
       name: "vote",
       type: "function",
@@ -396,6 +405,20 @@ export const ABIS = {
       stateMutability: "nonpayable",
       inputs: [{ name: "_tokenId", type: "uint256" }],
       outputs: [],
+    },
+    {
+      name: "lastVoted",
+      type: "function",
+      stateMutability: "view",
+      inputs: [{ name: "_tokenId", type: "uint256" }],
+      outputs: [{ type: "uint256" }],
+    },
+    {
+      name: "isWhitelistedNFT",
+      type: "function",
+      stateMutability: "view",
+      inputs: [{ name: "_tokenId", type: "uint256" }],
+      outputs: [{ type: "bool" }],
     },
     {
       name: "claimBribes",
