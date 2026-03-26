@@ -95,6 +95,9 @@ export interface GlobalStats {
   tvl: string;
   volume: string;
   fees: string;
+  tvlRaw: number;
+  volumeRaw: number;
+  feesRaw: number;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -137,7 +140,7 @@ function getTokenMeta(
       logoUrl: localToken?.logoUrl ?? "",
       address,
       decimals: Number(envioToken.decimals) || 18,
-      priceUSD: bigIntToUSD(envioToken.pricePerUSDNew),
+      priceUSD: parsePoolUSD(envioToken.pricePerUSDNew),
       verified:
         envioToken.isWhitelisted || localToken?.safetyLevel === "VERIFIED",
     };
@@ -168,7 +171,7 @@ function getTokenMeta(
 
 /**
  * Convert a BigInt-string with 18 decimal places to a JS number.
- * Envio stores all USD values as uint256 with 18-decimal precision.
+ * Used only for token pricePerUSDNew (still 18-decimal precision).
  */
 function bigIntToUSD(raw: string | null | undefined): number {
   if (!raw || raw === "0") return 0;
@@ -178,6 +181,16 @@ function bigIntToUSD(raw: string | null | undefined): number {
   } catch {
     return 0;
   }
+}
+
+/**
+ * Parse USD fields from Envio.
+ * Envio stores USD values with 6 decimal places (e.g. "2000000000" = $2000).
+ */
+function parsePoolUSD(raw: string | null | undefined): number {
+  if (!raw || raw === "0") return 0;
+  const n = Number(raw);
+  return isFinite(n) ? n / 1_000_000 : 0;
 }
 
 function bigIntToTokenAmount(
@@ -197,7 +210,7 @@ function bigIntToTokenAmount(
 }
 
 function compactUSD(value: number): string {
-  if (value === 0) return "-";
+  if (value === 0) return "$0";
   if (value >= 1e9) return `~$${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `~$${(value / 1e6).toFixed(2)}M`;
   if (value >= 1e3)
@@ -249,10 +262,10 @@ function mapPool(raw: RawPool, envioTokenMap: Map<string, RawToken>): PoolInfo {
   const token0 = getTokenMeta(raw.token0_address, envioTokenMap);
   const token1 = getTokenMeta(raw.token1_address, envioTokenMap);
 
-  const tvlUSD = bigIntToUSD(raw.totalLiquidityUSD);
-  const volumeUSD = bigIntToUSD(raw.totalVolumeUSD);
-  const feesUSD = bigIntToUSD(raw.totalFeesGeneratedUSD);
-  const emissionsUSD = bigIntToUSD(raw.totalEmissionsUSD);
+  const tvlUSD = parsePoolUSD(raw.totalLiquidityUSD);
+  const volumeUSD = parsePoolUSD(raw.totalVolumeUSD);
+  const feesUSD = parsePoolUSD(raw.totalFeesGeneratedUSD);
+  const emissionsUSD = parsePoolUSD(raw.totalEmissionsUSD);
 
   const r0 = bigIntToTokenAmount(raw.reserve0, token0.decimals);
   const r1 = bigIntToTokenAmount(raw.reserve1, token1.decimals);
@@ -353,6 +366,9 @@ export function usePools() {
       tvl: compactUSD(tvl),
       volume: compactUSD(volume),
       fees: compactUSD(fees),
+      tvlRaw: tvl,
+      volumeRaw: volume,
+      feesRaw: fees,
     };
   }, [pools]);
 

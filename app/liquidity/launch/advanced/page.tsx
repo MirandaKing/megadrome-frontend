@@ -207,46 +207,65 @@ function TokenPicker({
   );
 }
 
-// ── Pool list row ─────────────────────────────────────────────────────────────
+// ── Pool list row (Aerodrome style) ──────────────────────────────────────────
+
+function aprFromPool(pool: PoolInfo): string {
+  if (pool.tvlUSD <= 0) return "-";
+  // emissionsUSD from Envio is the total token emissions — use as rough weekly proxy
+  const weekly = pool.emissionsUSD;
+  if (weekly <= 0) return "-";
+  const apr = (weekly / pool.tvlUSD) * 52 * 100;
+  if (!isFinite(apr) || apr <= 0) return "-";
+  return `${apr.toFixed(2)}%`;
+}
 
 function PoolRow({ pool, onSelect }: { pool: PoolInfo; onSelect: () => void }) {
+  const apr = aprFromPool(pool);
   return (
-    <button
-      onClick={onSelect}
-      className="w-full bg-[#0a1612] rounded-xl border border-white/5 p-4 hover:border-[#f7931a]/30 hover:bg-[#0f1e19] transition-all text-left"
-    >
-      <div className="flex items-center justify-between gap-3">
+    <div className="bg-[#0a1612] rounded-xl border border-white/5 overflow-hidden">
+      {/* Top row — pool info + stats */}
+      <div className="flex items-center justify-between gap-4 px-4 pt-4 pb-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex -space-x-2 shrink-0">
-            <TokenLogo url={pool.token0.logoUrl} symbol={pool.token0.symbol} size={32} />
-            <TokenLogo url={pool.token1.logoUrl} symbol={pool.token1.symbol} size={32} />
+            <TokenLogo url={pool.token0.logoUrl} symbol={pool.token0.symbol} size={36} />
+            <TokenLogo url={pool.token1.logoUrl} symbol={pool.token1.symbol} size={36} />
           </div>
           <div className="min-w-0">
-            <div className="font-semibold text-sm truncate">
-              {pool.token0.symbol} / {pool.token1.symbol}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-sm">
+                {pool.token0.symbol} / {pool.token1.symbol}
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-white/10 text-white/60">
+                {pool.fee}
+              </span>
             </div>
-            <div className="text-xs text-white/40 truncate">
-              {pool.poolType} · {pool.fee}
-            </div>
+            <div className="text-xs text-[#f7931a] mt-0.5">{pool.poolType}</div>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="text-right hidden sm:block">
-            <div className="text-[10px] text-white/40">TVL</div>
-            <div className="text-sm font-medium">{pool.tvl}</div>
+        <div className="flex gap-6 shrink-0 text-right">
+          <div>
+            <div className="text-base font-semibold">{apr}</div>
+            <div className="text-[10px] text-white/40 uppercase tracking-wide">APR</div>
           </div>
-          {pool.gaugeIsAlive && (
-            <span className="hidden sm:flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#f7931a]/20 text-[#f7931a] rounded">
-              Gauge
-            </span>
-          )}
-          <div className="flex items-center gap-1 text-[#f7931a] text-sm font-medium">
-            <span>Deposit</span>
-            <ChevronRight className="w-4 h-4" />
+          <div>
+            <div className="text-base font-semibold">{pool.tvl}</div>
+            <div className="text-[10px] text-white/40 uppercase tracking-wide">TVL</div>
           </div>
         </div>
       </div>
-    </button>
+
+      {/* Bottom row — position hint + action */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/5">
+        <span className="text-xs text-white/30">No deposits</span>
+        <button
+          onClick={onSelect}
+          className="flex items-center gap-1 text-[#f7931a] text-xs font-semibold hover:text-[#ff9f2a] transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          New deposit
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -309,8 +328,9 @@ function CLDepositForm({
   const { toast } = useToast();
   const addresses = ADDRESSES[CHAIN_ID];
 
-  const t0Addr = (pool?.token0.address ?? token0.address) as Address;
-  const t1Addr = (pool?.token1.address ?? token1.address) as Address;
+  // Native MON has address === null; fall back to WMON for on-chain interactions
+  const t0Addr = (pool?.token0.address ?? token0.address ?? MONAD_CONTRACTS.WMON) as Address;
+  const t1Addr = (pool?.token1.address ?? token1.address ?? MONAD_CONTRACTS.WMON) as Address;
   const dec0 = pool?.token0.decimals ?? token0.decimals;
   const dec1 = pool?.token1.decimals ?? token1.decimals;
   const sym0 = pool?.token0.symbol ?? token0.symbol;
@@ -641,8 +661,9 @@ function BasicDepositForm({
   const { toast } = useToast();
   const addresses = ADDRESSES[CHAIN_ID];
 
-  const t0Addr = (pool?.token0.address ?? token0.address) as Address;
-  const t1Addr = (pool?.token1.address ?? token1.address) as Address;
+  // Native MON has address === null; fall back to WMON for on-chain interactions
+  const t0Addr = (pool?.token0.address ?? token0.address ?? MONAD_CONTRACTS.WMON) as Address;
+  const t1Addr = (pool?.token1.address ?? token1.address ?? MONAD_CONTRACTS.WMON) as Address;
   const dec0 = pool?.token0.decimals ?? token0.decimals;
   const dec1 = pool?.token1.decimals ?? token1.decimals;
   const sym0 = pool?.token0.symbol ?? token0.symbol;
@@ -948,6 +969,7 @@ export default function AdvancedLaunchPage() {
   const [tokenB, setTokenB] = useState<TokenInfo | null>(null);
   const [filter, setFilter] = useState<PoolTypeFilter>("all");
   const [view, setView] = useState<ViewState>({ kind: "list" });
+  const [showLowLiquidity, setShowLowLiquidity] = useState(false);
 
   const WMON = MONAD_CONTRACTS.WMON.toLowerCase();
 
@@ -968,16 +990,14 @@ export default function AdvancedLaunchPage() {
     });
   }, [pools, tokenA, tokenB, filter, WMON]);
 
-  // "Create new pool" is offered when both tokens are selected and no pools match
+  // Split into normal (tvl > 0) and low liquidity (tvl = 0)
+  const normalPools = useMemo(() => filteredPools.filter((p) => p.tvlUSD > 0), [filteredPools]);
+  const lowLiqPools = useMemo(() => filteredPools.filter((p) => p.tvlUSD <= 0), [filteredPools]);
+  // If no pools have TVL data yet (common on testnet), show all pools
+  const visiblePools = showLowLiquidity || normalPools.length === 0 ? filteredPools : normalPools;
+
   const canCreate = !!tokenA && !!tokenB && !loading && filteredPools.length === 0;
 
-  const FILTER_TABS: { label: string; value: PoolTypeFilter }[] = [
-    { label: "All", value: "all" },
-    { label: "Concentrated", value: "concentrated" },
-    { label: "Basic", value: "basic" },
-  ];
-
-  // Decode selected new pool type
   function renderNewPool(poolType: NewPoolType) {
     const tA = tokenA!;
     const tB = tokenB!;
@@ -992,7 +1012,6 @@ export default function AdvancedLaunchPage() {
     }
     const tickMap: Record<string, number> = { "cl-1": 1, "cl-60": 60, "cl-200": 200 };
     const ts = tickMap[poolType] ?? 60;
-    // Create a synthetic PoolInfo shell for the CL form
     const fakeCLPool: PoolInfo = {
       id: "new", poolAddress: zeroAddress, name: "", isStable: false, isCL: true,
       poolType: `New CL (tick ${ts})`, fee: ts === 1 ? "0.01%" : ts === 60 ? "0.30%" : "1.00%",
@@ -1020,46 +1039,77 @@ export default function AdvancedLaunchPage() {
       <Header />
 
       <div className="flex-1 px-4 py-8 sm:px-6 md:px-12">
-        <div className="max-w-2xl mx-auto space-y-5">
+        <div className="max-w-2xl mx-auto space-y-4">
 
-          {/* ── List / filter view ── */}
+          {/* ── List view ── */}
           {view.kind === "list" && (
             <>
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/liquidity/launch"
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Link>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold">Advanced deposit</h1>
+              {/* Main filter card */}
+              <div className="relative z-20 bg-[#0a1612]/95 rounded-2xl border border-white/8 overflow-visible">
+                {/* Header */}
+                <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-white/5">
+                  <Link
+                    href="/liquidity/launch"
+                    className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </Link>
+                  <h1 className="font-bold text-lg">New deposit</h1>
                   <HelpCircle className="w-4 h-4 text-white/30" />
                 </div>
-              </div>
 
-              {/* Filter card — high z-index so dropdowns escape pool rows */}
-              <div className="relative z-20 bg-[#0a1612]/90 rounded-xl border border-white/5 p-4 space-y-4">
-                <div className="text-sm font-semibold text-white/70">Filter by tokens</div>
-                <div className="grid grid-cols-2 gap-3">
-                  <TokenPicker value={tokenA} onSelect={setTokenA} label="Token A (optional)" exclude={tokenB?.id} />
-                  <TokenPicker value={tokenB} onSelect={setTokenB} label="Token B (optional)" exclude={tokenA?.id} />
-                </div>
-                <div className="flex gap-2">
-                  {FILTER_TABS.map((tab) => (
+                {/* Token pickers */}
+                <div className="px-5 py-5 space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="text-xs text-white/50">Token you want to deposit</div>
+                      <TokenPicker value={tokenA} onSelect={setTokenA} label="Select token" exclude={tokenB?.id} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="text-xs text-white/50">Token you want to pair with</div>
+                      <TokenPicker value={tokenB} onSelect={setTokenB} label="Select token" exclude={tokenA?.id} />
+                    </div>
+                  </div>
+
+                  {/* Pool type radio cards */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Concentrated */}
                     <button
-                      key={tab.value}
-                      onClick={() => setFilter(tab.value)}
-                      className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${filter === tab.value ? "bg-[#f7931a] text-white" : "bg-white/5 text-white/60 hover:bg-white/10"}`}
+                      onClick={() => setFilter((f) => f === "concentrated" ? "all" : "concentrated")}
+                      className={`rounded-xl border p-4 text-left transition-all ${filter === "concentrated" ? "border-[#f7931a] bg-[#f7931a]/5" : "border-white/10 bg-[#0d1e1a] hover:border-white/20"}`}
                     >
-                      {tab.label}
+                      <div className="flex items-center gap-2.5 mb-2.5">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${filter === "concentrated" ? "border-[#f7931a] bg-[#f7931a]" : "border-white/30"}`}>
+                          {filter === "concentrated" && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                        <span className="font-semibold text-sm">Concentrated Pools</span>
+                      </div>
+                      <p className="text-xs text-white/40 leading-relaxed">
+                        These pools require you to specify a price range in which your liquidity will be active. The range is defined using evenly spaced price intervals called ticks.
+                      </p>
                     </button>
-                  ))}
+
+                    {/* Basic */}
+                    <button
+                      onClick={() => setFilter((f) => f === "basic" ? "all" : "basic")}
+                      className={`rounded-xl border p-4 text-left transition-all ${filter === "basic" ? "border-[#f7931a] bg-[#f7931a]/5" : "border-white/10 bg-[#0d1e1a] hover:border-white/20"}`}
+                    >
+                      <div className="flex items-center gap-2.5 mb-2.5">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${filter === "basic" ? "border-[#f7931a] bg-[#f7931a]" : "border-white/30"}`}>
+                          {filter === "basic" && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                        <span className="font-semibold text-sm">Basic Pools</span>
+                      </div>
+                      <p className="text-xs text-white/40 leading-relaxed">
+                        Also known as constant product AMMs, these pools spread liquidity across the full price range (0 to ∞) and require little to no active management.
+                      </p>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Pool list — lower z */}
-              <div className="relative z-0 space-y-2">
+              {/* Pool list */}
+              <div className="relative z-0 space-y-3">
                 {loading ? (
                   <div className="text-center py-16 flex flex-col items-center gap-3 text-white/40">
                     <Loader2 className="w-6 h-6 animate-spin text-[#f7931a]" />
@@ -1067,38 +1117,56 @@ export default function AdvancedLaunchPage() {
                   </div>
                 ) : error ? (
                   <div className="text-center py-16 text-red-400">{error}</div>
-                ) : filteredPools.length === 0 ? (
-                  <div className="text-center py-10 space-y-4">
-                    <p className="text-white/40 text-sm">
-                      {tokenA && tokenB ? `No ${filter === "all" ? "" : filter + " "}pools found for ${tokenA.symbol} / ${tokenB.symbol}.` : "No pools match your filter."}
-                    </p>
-                    {canCreate && (
-                      <button
-                        onClick={() => setView({ kind: "create-select" })}
-                        className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#f7931a] hover:bg-[#ff9f2a] text-white text-sm font-semibold transition-colors shadow-lg shadow-[#f7931a]/25"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Create new pool
-                      </button>
-                    )}
+                ) : filteredPools.length === 0 && !canCreate ? (
+                  <div className="text-center py-10 text-white/40 text-sm">
+                    No pools match your filter.
                   </div>
                 ) : (
                   <>
-                    {filteredPools.map((pool) => (
+                    {visiblePools.map((pool) => (
                       <PoolRow
                         key={pool.id}
                         pool={pool}
                         onSelect={() => setView({ kind: "deposit", pool })}
                       />
                     ))}
-                    {/* Always offer create when both tokens are picked */}
-                    {tokenA && tokenB && (
+
+                    {/* Create new pool CTA */}
+                    {canCreate && (
+                      <div className="text-center py-4 space-y-4">
+                        <p className="text-white/40 text-sm">
+                          No pools found for {tokenA?.symbol} / {tokenB?.symbol}.
+                        </p>
+                        <button
+                          onClick={() => setView({ kind: "create-select" })}
+                          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#f7931a] hover:bg-[#ff9f2a] text-white text-sm font-semibold transition-colors shadow-lg shadow-[#f7931a]/25"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Create new pool
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Create another pool option when pools exist */}
+                    {!canCreate && tokenA && tokenB && (
                       <button
                         onClick={() => setView({ kind: "create-select" })}
                         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-white/10 text-white/40 hover:border-[#f7931a]/40 hover:text-[#f7931a] text-sm font-medium transition-colors"
                       >
                         <Plus className="w-4 h-4" />
                         Create a new {tokenA.symbol} / {tokenB.symbol} pool
+                      </button>
+                    )}
+
+                    {/* Show low liquidity pools toggle — only shown when some pools have TVL */}
+                    {lowLiqPools.length > 0 && normalPools.length > 0 && (
+                      <button
+                        onClick={() => setShowLowLiquidity((v) => !v)}
+                        className="w-full py-3 rounded-xl bg-[#0a1612] border border-white/5 text-white/40 text-sm hover:text-white/60 transition-colors"
+                      >
+                        {showLowLiquidity
+                          ? "Hide low liquidity pools"
+                          : `Show low liquidity pools (${lowLiqPools.length})`}
                       </button>
                     )}
                   </>

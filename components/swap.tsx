@@ -10,6 +10,7 @@ import { useSettingsStore } from "@/stores/useSettingsStore";
 import { toast } from "@/hooks/use-toast";
 import { TOKEN_LIST, type TokenInfo } from "@/lib/token-list";
 import { formatAmount } from "@/lib/format";
+import { usePools } from "@/hooks/use-pools";
 
 // Default tokens from the shared token list
 const defaultFromToken = TOKEN_LIST.find((t) => t.symbol === "MON")!;
@@ -60,8 +61,23 @@ export default function Swap() {
     amountIn: fromAmount,
   });
 
+  // Token USD prices from Envio
+  const { discoveredTokens } = usePools();
+  const getTokenPrice = (token: TokenInfo) => {
+    const addr = (token.address ?? "").toLowerCase();
+    return discoveredTokens.find((t) => t.address.toLowerCase() === addr)?.priceUSD ?? 0;
+  };
+  const fromPriceUSD = getTokenPrice(fromToken);
+  const toPriceUSD = getTokenPrice(toToken);
+  const fromUSD = fromAmount && parseFloat(fromAmount) > 0
+    ? parseFloat(fromAmount) * fromPriceUSD
+    : 0;
+
   // Derived display values
   const toAmount = amountOut;
+  const toUSD = toAmount && parseFloat(toAmount) > 0
+    ? parseFloat(toAmount) * toPriceUSD
+    : 0;
   const exchangeRate = quote.exchangeRate;
   const priceImpact = quote.priceImpact.toFixed(5);
   const feePercent = quote.routeIsStable ? "0.05" : "0.30";
@@ -651,6 +667,11 @@ export default function Swap() {
                     placeholder="0"
                     className="w-full bg-transparent text-3xl font-bold text-[#f7931a] text-right placeholder:text-white/20 focus:outline-none"
                   />
+                  {fromUSD > 0 && (
+                    <div className="text-sm text-white/40 mt-1">
+                      ~${fromUSD.toFixed(2)}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -719,6 +740,11 @@ export default function Swap() {
                       "0"
                     )}
                   </div>
+                  {toUSD > 0 && !quote.isLoading && (
+                    <div className="text-sm text-white/40 mt-1">
+                      ~${toUSD.toFixed(2)}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -79,7 +79,7 @@ function formatBalanceNum(raw: bigint, decimals: number): number {
 function formatBalance(raw: bigint | undefined, decimals: number): string {
   if (!raw || raw === BigInt(0)) return "0";
   const value = formatBalanceNum(raw, decimals);
-  if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
+  if (value >= 1e6) return `${(value / 1e6).toFixed(6)}M`;
   if (value >= 1e3)
     return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
   if (value >= 1) return value.toFixed(4).replace(/\.?0+$/, "");
@@ -89,7 +89,7 @@ function formatBalance(raw: bigint | undefined, decimals: number): string {
 
 /** Format price with smart precision */
 function formatPrice(priceUSD: number): string {
-  if (priceUSD === 0) return "-";
+  if (priceUSD === 0) return "$0";
   if (priceUSD >= 1000)
     return `$${priceUSD.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   if (priceUSD >= 1) return `$${priceUSD.toFixed(4)}`;
@@ -99,12 +99,12 @@ function formatPrice(priceUSD: number): string {
 
 /** Format TVL compactly */
 function formatTVL(tvlUSD: number): string {
-  if (tvlUSD === 0) return "-";
-  if (tvlUSD >= 1e9) return `$${(tvlUSD / 1e9).toFixed(2)}B`;
-  if (tvlUSD >= 1e6) return `$${(tvlUSD / 1e6).toFixed(2)}M`;
+  if (tvlUSD === 0) return "$0";
+  if (tvlUSD >= 1e9) return `$${(tvlUSD / 1e9).toFixed(6)}B`;
+  if (tvlUSD >= 1e6) return `$${(tvlUSD / 1e6).toFixed(6)}M`;
   if (tvlUSD >= 1e3)
     return `$${tvlUSD.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-  return `$${tvlUSD.toFixed(2)}`;
+  return `$${tvlUSD.toFixed(6)}`;
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -116,6 +116,34 @@ type TypeFilter = "any" | "concentrated" | "basic";
 type VolatilityFilter = "any" | "stable" | "volatile";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+/** Styled tooltip that appears on hover above the trigger */
+function ProperTooltip({
+  tip,
+  children,
+}: {
+  tip: string;
+  children: React.ReactNode;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div
+      className="relative inline-flex"
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none">
+          <div className="bg-[#0a1612] border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white whitespace-nowrap shadow-xl shadow-black/50">
+            {tip}
+          </div>
+          <div className="w-2 h-2 bg-[#0a1612] border-r border-b border-white/20 rotate-45 mx-auto -mt-1" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** Reusable dropdown for filter buttons */
 function FilterDropdown({
@@ -228,6 +256,7 @@ function TokenPairIcons({
 
 /** Single pool row in the table */
 function PoolRow({ pool }: { pool: PoolInfo }) {
+  console.log(pool);
   return (
     <Link
       href={`/liquidity/deposit?pool=${pool.poolAddress}`}
@@ -266,22 +295,25 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
       {/* Volume */}
       <div className="flex justify-between gap-4 border-b border-white/5 pb-4 text-xs sm:flex-col sm:border-b-0 sm:pb-0 lg:text-right">
         <div className="text-white/50 lg:hidden">Volume</div>
-        <div className="lg:text-sm text-white">
-          {pool.volumeUSD > 0 ? (
-            pool.volume
-          ) : pool.volume0Human !== "-" || pool.volume1Human !== "-" ? (
-            <span className="text-white/60">
-              {pool.volume0Human} {pool.token0.symbol}
-            </span>
-          ) : (
-            "-"
-          )}
+        <div
+          className="lg:text-sm text-white cursor-default"
+          title={
+            pool.volumeUSD > 0 ? `$${pool.volumeUSD.toFixed(6)}` : undefined
+          }
+        >
+          {pool.volume}
         </div>
         <div className="hidden sm:block space-y-0.5 text-white/50 text-[11px]">
           {pool.numberOfSwaps > 0 && (
             <div className="text-[#f7931a]/70">{pool.numberOfSwaps} swaps</div>
           )}
-          {pool.volume0Human !== "-" && pool.volumeUSD === 0 && (
+          {pool.volume0Human !== "-" && (
+            <div>
+              {pool.volume0Human}{" "}
+              <span className="opacity-70">{pool.token0.symbol}</span>
+            </div>
+          )}
+          {pool.volume1Human !== "-" && (
             <div>
               {pool.volume1Human}{" "}
               <span className="opacity-70">{pool.token1.symbol}</span>
@@ -293,15 +325,24 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
       {/* Fees */}
       <div className="flex justify-between gap-4 border-b border-white/5 pb-4 text-xs sm:flex-col sm:border-b-0 sm:pb-0 lg:text-right">
         <div className="text-white/50 lg:hidden">Fees</div>
-        <div className="lg:text-sm text-white">
-          {pool.feesUSD > 0 ? (
-            pool.fees
-          ) : pool.fees0Human !== "-" ? (
-            <span className="text-white/60">
-              {pool.fees0Human} {pool.token0.symbol}
-            </span>
-          ) : (
-            "-"
+        <div
+          className="lg:text-sm text-white cursor-default"
+          title={pool.feesUSD > 0 ? `$${pool.feesUSD.toFixed(6)}` : undefined}
+        >
+          {pool.fees}
+        </div>
+        <div className="hidden sm:block space-y-0.5 text-white/50 text-[11px]">
+          {pool.fees0Human !== "-" && (
+            <div>
+              {pool.fees0Human}{" "}
+              <span className="opacity-70">{pool.token0.symbol}</span>
+            </div>
+          )}
+          {pool.fees1Human !== "-" && (
+            <div>
+              {pool.fees1Human}{" "}
+              <span className="opacity-70">{pool.token1.symbol}</span>
+            </div>
           )}
         </div>
       </div>
@@ -309,7 +350,12 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
       {/* TVL */}
       <div className="flex justify-between gap-4 border-b border-white/5 pb-4 text-xs sm:flex-col sm:border-b-0 sm:pb-0 lg:text-right">
         <div className="text-white/50 lg:hidden">TVL</div>
-        <div className="lg:text-sm text-white">{pool.tvl}</div>
+        <div
+          className="lg:text-sm text-white cursor-default"
+          title={pool.tvlUSD > 0 ? `$${pool.tvlUSD.toFixed(6)}` : undefined}
+        >
+          {pool.tvl}
+        </div>
         <div className="hidden sm:block space-y-0.5 text-white/50 text-[11px]">
           {pool.reserve0Human !== "-" && (
             <div>
@@ -322,9 +368,6 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
               {pool.reserve1Human}{" "}
               <span className="opacity-70">{pool.token1.symbol}</span>
             </div>
-          )}
-          {pool.reserve0Human === "-" && pool.reserve1Human === "-" && (
-            <div className="text-white/30 italic">No liquidity yet</div>
           )}
         </div>
       </div>
@@ -457,7 +500,12 @@ function TokenRow({
         <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">
           Price
         </div>
-        <div className="text-sm font-semibold text-white">
+        <div
+          className="text-sm font-semibold text-white cursor-default"
+          title={
+            token.priceUSD > 0 ? `$${token.priceUSD.toFixed(6)}` : undefined
+          }
+        >
           {formatPrice(token.priceUSD)}
         </div>
       </div>
@@ -467,7 +515,10 @@ function TokenRow({
         <div className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-0.5 sm:hidden">
           TVL
         </div>
-        <div className="text-sm font-semibold text-white">
+        <div
+          className="text-sm font-semibold text-white cursor-default"
+          title={tvlUSD > 0 ? `$${tvlUSD.toFixed(6)}` : undefined}
+        >
           {formatTVL(tvlUSD)}
         </div>
       </div>
@@ -628,9 +679,13 @@ export default function Liquidity() {
               {loading ? (
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
-                <div className="text-lg font-semibold text-white">
-                  {stats.volume}
-                </div>
+                <ProperTooltip
+                  tip={stats.volumeRaw > 0 ? `$${stats.volumeRaw.toFixed(6)}` : ""}
+                >
+                  <div className="text-lg font-semibold text-white cursor-default">
+                    {stats.volume}
+                  </div>
+                </ProperTooltip>
               )}
               <div className="text-sm text-white/50">Total Volume</div>
             </div>
@@ -638,9 +693,13 @@ export default function Liquidity() {
               {loading ? (
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
-                <div className="text-lg font-semibold text-white">
-                  {stats.fees}
-                </div>
+                <ProperTooltip
+                  tip={stats.feesRaw > 0 ? `$${stats.feesRaw.toFixed(6)}` : ""}
+                >
+                  <div className="text-lg font-semibold text-white cursor-default">
+                    {stats.fees}
+                  </div>
+                </ProperTooltip>
               )}
               <div className="text-sm text-white/50">Total Fees</div>
             </div>
@@ -648,9 +707,13 @@ export default function Liquidity() {
               {loading ? (
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
-                <div className="text-lg font-semibold text-white">
-                  {stats.tvl}
-                </div>
+                <ProperTooltip
+                  tip={stats.tvlRaw > 0 ? `$${stats.tvlRaw.toFixed(6)}` : ""}
+                >
+                  <div className="text-lg font-semibold text-white cursor-default">
+                    {stats.tvl}
+                  </div>
+                </ProperTooltip>
               )}
               <div className="text-sm text-white/50">TVL</div>
             </div>
