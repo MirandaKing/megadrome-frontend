@@ -6,11 +6,13 @@ export function formatAmount(value: string | number | bigint, decimals = 4): str
   if (isNaN(num)) return "0";
   if (num === 0) return "0";
   
-  // For very small numbers, show more decimals
+  // For very small numbers: show 4 significant figures, no scientific notation
   if (num < 0.0001 && num > 0) {
-    return num.toExponential(2);
+    const leadingZeros = -Math.floor(Math.log10(num)) - 1;
+    const decimalsNeeded = Math.min(leadingZeros + 4, 12);
+    return num.toFixed(decimalsNeeded);
   }
-  
+
   // Format with commas
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 0,

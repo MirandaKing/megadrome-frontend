@@ -15,7 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePools, type PoolInfo, type TokenMeta } from "@/hooks/use-pools";
+import { usePools, fullUSD, type PoolInfo, type TokenMeta } from "@/hooks/use-pools";
 import { shortenAddress } from "@/lib/format";
 import { useReadContracts, useAccount } from "wagmi";
 import type { Address } from "viem";
@@ -133,7 +133,7 @@ function ProperTooltip({
       onMouseLeave={() => setVisible(false)}
     >
       {children}
-      {visible && (
+      {visible && tip && (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none">
           <div className="bg-[#0a1612] border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white whitespace-nowrap shadow-xl shadow-black/50">
             {tip}
@@ -298,7 +298,7 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div
           className="lg:text-sm text-white cursor-default"
           title={
-            pool.volumeUSD > 0 ? `$${pool.volumeUSD.toFixed(6)}` : undefined
+            fullUSD(pool.volumeUSD) || undefined
           }
         >
           {pool.volume}
@@ -327,7 +327,7 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div className="text-white/50 lg:hidden">Fees</div>
         <div
           className="lg:text-sm text-white cursor-default"
-          title={pool.feesUSD > 0 ? `$${pool.feesUSD.toFixed(6)}` : undefined}
+          title={fullUSD(pool.feesUSD) || undefined}
         >
           {pool.fees}
         </div>
@@ -352,7 +352,7 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div className="text-white/50 lg:hidden">TVL</div>
         <div
           className="lg:text-sm text-white cursor-default"
-          title={pool.tvlUSD > 0 ? `$${pool.tvlUSD.toFixed(6)}` : undefined}
+          title={fullUSD(pool.tvlUSD) || undefined}
         >
           {pool.tvl}
         </div>
@@ -503,7 +503,7 @@ function TokenRow({
         <div
           className="text-sm font-semibold text-white cursor-default"
           title={
-            token.priceUSD > 0 ? `$${token.priceUSD.toFixed(6)}` : undefined
+            fullUSD(token.priceUSD) || undefined
           }
         >
           {formatPrice(token.priceUSD)}
@@ -517,7 +517,7 @@ function TokenRow({
         </div>
         <div
           className="text-sm font-semibold text-white cursor-default"
-          title={tvlUSD > 0 ? `$${tvlUSD.toFixed(6)}` : undefined}
+          title={fullUSD(tvlUSD) || undefined}
         >
           {formatTVL(tvlUSD)}
         </div>
@@ -554,6 +554,8 @@ export default function Liquidity() {
   const { pools, loading, error, stats, discoveredTokens } = usePools();
   const { isConnected } = useAccount();
   const balanceMap = useTokenBalances(discoveredTokens);
+
+  console.log(stats, "statsstats");
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -680,7 +682,9 @@ export default function Liquidity() {
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
                 <ProperTooltip
-                  tip={stats.volumeRaw > 0 ? `$${stats.volumeRaw.toFixed(6)}` : ""}
+                  tip={
+                    fullUSD(stats.volumeRaw)
+                  }
                 >
                   <div className="text-lg font-semibold text-white cursor-default">
                     {stats.volume}
@@ -694,7 +698,7 @@ export default function Liquidity() {
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
                 <ProperTooltip
-                  tip={stats.feesRaw > 0 ? `$${stats.feesRaw.toFixed(6)}` : ""}
+                  tip={fullUSD(stats.feesRaw)}
                 >
                   <div className="text-lg font-semibold text-white cursor-default">
                     {stats.fees}
@@ -708,7 +712,7 @@ export default function Liquidity() {
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
                 <ProperTooltip
-                  tip={stats.tvlRaw > 0 ? `$${stats.tvlRaw.toFixed(6)}` : ""}
+                  tip={fullUSD(stats.tvlRaw)}
                 >
                   <div className="text-lg font-semibold text-white cursor-default">
                     {stats.tvl}

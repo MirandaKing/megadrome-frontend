@@ -185,12 +185,16 @@ function bigIntToUSD(raw: string | null | undefined): number {
 
 /**
  * Parse USD fields from Envio.
- * Envio stores USD values with 6 decimal places (e.g. "2000000000" = $2000).
+ * 18-decimal fixed-point: "4331668001334680" = $0.00000433... (very low on testnet).
+ * Use float division to preserve sub-cent precision.
  */
 function parsePoolUSD(raw: string | null | undefined): number {
   if (!raw || raw === "0") return 0;
-  const n = Number(raw);
-  return isFinite(n) ? n / 1_000_000 : 0;
+  try {
+    return Number(BigInt(raw)) / 1e18;
+  } catch {
+    return 0;
+  }
 }
 
 function bigIntToTokenAmount(
@@ -210,12 +214,21 @@ function bigIntToTokenAmount(
 }
 
 function compactUSD(value: number): string {
-  if (value === 0) return "$0";
+  if (value <= 0) return "$0";
+  if (value < 0.01) return ">$0.00";
   if (value >= 1e9) return `~$${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `~$${(value / 1e6).toFixed(2)}M`;
   if (value >= 1e3)
     return `~$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   return `~$${value.toFixed(2)}`;
+}
+
+/** Full-precision USD string for tooltips */
+export function fullUSD(value: number): string {
+  if (value <= 0) return "";
+  // show enough decimals to see all significant figures
+  const s = value.toPrecision(10).replace(/\.?0+$/, "");
+  return `$${s}`;
 }
 
 function compactTokenAmount(value: number): string {
@@ -327,7 +340,16 @@ export function usePools() {
       .then((json) => {
         if (cancelled) return;
         if (json.error) throw new Error(json.error);
-        setRawPools(json?.data?.LiquidityPoolAggregator ?? []);
+        const pools = json?.data?.LiquidityPoolAggregator ?? [];
+        if (pools[0]) {
+          console.log("[usePools] raw USD sample from first pool:", {
+            name: pools[0].name,
+            totalLiquidityUSD: pools[0].totalLiquidityUSD,
+            totalVolumeUSD: pools[0].totalVolumeUSD,
+            totalFeesGeneratedUSD: pools[0].totalFeesGeneratedUSD,
+          });
+        }
+        setRawPools(pools);
         setRawTokens(json?.data?.Token ?? []);
         setError(null);
       })
