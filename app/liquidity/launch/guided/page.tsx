@@ -363,7 +363,12 @@ export default function GuidedLaunchPage() {
       (selectedPairing?.address ?? zeroAddress) as Address,
       selectedPoolType.isStable,
     ],
-    query: { enabled: !!searchedToken?.address && !!selectedPairing?.address && !!addresses?.pairFactory },
+    query: {
+      enabled:
+        !!searchedToken?.address &&
+        !!selectedPairing?.address &&
+        !!addresses?.pairFactory,
+    },
   });
   const poolAlreadyExists =
     existingPools.length > 0 || (!!onChainPair && onChainPair !== zeroAddress);
@@ -399,8 +404,8 @@ export default function GuidedLaunchPage() {
 
   // CL uses positionManager as spender; V2 uses router
   const spender = selectedPoolType.isCL
-    ? (addresses?.positionManager ?? zeroAddress)
-    : (addresses?.router ?? zeroAddress);
+    ? addresses?.positionManager ?? zeroAddress
+    : addresses?.router ?? zeroAddress;
 
   // For CL: token0/token1 sorted by address
   const isToken0 =
@@ -601,7 +606,10 @@ export default function GuidedLaunchPage() {
   }
 
   function isContractRevert(err: unknown): boolean {
-    const e = err as { name?: string; cause?: { reason?: string; errorName?: string } };
+    const e = err as {
+      name?: string;
+      cause?: { reason?: string; errorName?: string };
+    };
     return (
       e?.name === "ContractFunctionRevertedError" ||
       !!e?.cause?.reason ||
@@ -612,7 +620,13 @@ export default function GuidedLaunchPage() {
   // ── Action handlers ────────────────────────────────────────────────────────
   async function handleApprove0() {
     if (txType !== null) return;
-    if (!searchedToken?.address || !addresses || !walletAddress || !publicClient) return;
+    if (
+      !searchedToken?.address ||
+      !addresses ||
+      !walletAddress ||
+      !publicClient
+    )
+      return;
     try {
       await publicClient.simulateContract({
         address: searchedToken.address as Address,
@@ -639,7 +653,13 @@ export default function GuidedLaunchPage() {
 
   async function handleApprove1() {
     if (txType !== null) return;
-    if (!selectedPairing?.address || !addresses || !walletAddress || !publicClient) return;
+    if (
+      !selectedPairing?.address ||
+      !addresses ||
+      !walletAddress ||
+      !publicClient
+    )
+      return;
     try {
       await publicClient.simulateContract({
         address: selectedPairing.address as Address,
@@ -672,7 +692,8 @@ export default function GuidedLaunchPage() {
       !walletAddress ||
       !addresses ||
       !publicClient
-    ) return;
+    )
+      return;
 
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
 
@@ -688,7 +709,10 @@ export default function GuidedLaunchPage() {
 
       // Compute initial price tick from user's entered price
       const initialTick = humanToTick(priceNum, isToken0, dec0, dec1);
-      const tickLower = Math.max(alignTickDown(initialTick, ts), minTickAligned);
+      const tickLower = Math.max(
+        alignTickDown(initialTick, ts),
+        minTickAligned
+      );
       const tickUpper =
         rangeType === "full"
           ? maxTickAligned
@@ -700,21 +724,38 @@ export default function GuidedLaunchPage() {
             })();
 
       if (tickLower >= tickUpper) {
-        toast({ title: "Invalid price range", description: "Max price must be above initial price." });
+        toast({
+          title: "Invalid price range",
+          description: "Max price must be above initial price.",
+        });
         return;
       }
 
       const sqrtPriceX96 = humanToSqrtPriceX96(priceNum, isToken0, dec0, dec1);
-      const token0Addr = (isToken0 ? searchedToken.address : selectedPairing.address) as Address;
-      const token1Addr = (isToken0 ? selectedPairing.address : searchedToken.address) as Address;
+      const token0Addr = (
+        isToken0 ? searchedToken.address : selectedPairing.address
+      ) as Address;
+      const token1Addr = (
+        isToken0 ? selectedPairing.address : searchedToken.address
+      ) as Address;
 
       // Single-sided: only searchedToken amount, pairing = 0
-      const a0 = selectedPoolType.id === "cl-single"
-        ? (isToken0 ? amount0Parsed : 0n)
-        : (isToken0 ? amount0Parsed : amount1Parsed);
-      const a1 = selectedPoolType.id === "cl-single"
-        ? (isToken0 ? 0n : amount0Parsed)
-        : (isToken0 ? amount1Parsed : amount0Parsed);
+      const a0 =
+        selectedPoolType.id === "cl-single"
+          ? isToken0
+            ? amount0Parsed
+            : 0n
+          : isToken0
+          ? amount0Parsed
+          : amount1Parsed;
+      const a1 =
+        selectedPoolType.id === "cl-single"
+          ? isToken0
+            ? 0n
+            : amount0Parsed
+          : isToken0
+          ? amount1Parsed
+          : amount0Parsed;
 
       const mintParams = {
         token0: token0Addr,
@@ -741,7 +782,10 @@ export default function GuidedLaunchPage() {
         });
       } catch (err) {
         if (isContractRevert(err)) {
-          toast({ title: "Transaction will fail", description: getSimError(err) });
+          toast({
+            title: "Transaction will fail",
+            description: getSimError(err),
+          });
           return;
         }
         console.warn("CL mint simulation failed (non-revert):", err);
@@ -774,7 +818,8 @@ export default function GuidedLaunchPage() {
       if (existingPair && existingPair !== zeroAddress) {
         toast({
           title: "Pool already exists",
-          description: "This pool already exists. Use the Deposit page to add liquidity.",
+          description:
+            "This pool already exists. Use the Deposit page to add liquidity.",
         });
         return;
       }
@@ -791,7 +836,15 @@ export default function GuidedLaunchPage() {
           address: addresses.router,
           abi: ABIS.Router,
           functionName: "addLiquidityETH",
-          args: [searchedToken.address as Address, selectedPoolType.isStable, amount0Parsed, min0, min1, walletAddress, deadline],
+          args: [
+            searchedToken.address as Address,
+            selectedPoolType.isStable,
+            amount0Parsed,
+            min0,
+            min1,
+            walletAddress,
+            deadline,
+          ],
           value: amount1Parsed,
           account: walletAddress,
         });
@@ -800,13 +853,26 @@ export default function GuidedLaunchPage() {
           address: addresses.router,
           abi: ABIS.Router,
           functionName: "addLiquidity",
-          args: [searchedToken.address as Address, selectedPairing.address as Address, selectedPoolType.isStable, amount0Parsed, amount1Parsed, min0, min1, walletAddress, deadline],
+          args: [
+            searchedToken.address as Address,
+            selectedPairing.address as Address,
+            selectedPoolType.isStable,
+            amount0Parsed,
+            amount1Parsed,
+            BigInt(0),
+            BigInt(0),
+            walletAddress,
+            deadline,
+          ],
           account: walletAddress,
         });
       }
     } catch (err) {
       if (isContractRevert(err)) {
-        toast({ title: "Transaction will fail", description: getSimError(err) });
+        toast({
+          title: "Transaction will fail",
+          description: getSimError(err),
+        });
         return;
       }
       console.warn("V2 simulation failed (non-revert):", err);
@@ -819,7 +885,15 @@ export default function GuidedLaunchPage() {
         address: addresses.router,
         abi: ABIS.Router,
         functionName: "addLiquidityETH",
-        args: [searchedToken.address as Address, selectedPoolType.isStable, amount0Parsed, min0, min1, walletAddress, deadline],
+        args: [
+          searchedToken.address as Address,
+          selectedPoolType.isStable,
+          amount0Parsed,
+          min0,
+          min1,
+          walletAddress,
+          deadline,
+        ],
         value: amount1Parsed,
       });
     } else {
@@ -827,7 +901,17 @@ export default function GuidedLaunchPage() {
         address: addresses.router,
         abi: ABIS.Router,
         functionName: "addLiquidity",
-        args: [searchedToken.address as Address, selectedPairing.address as Address, selectedPoolType.isStable, amount0Parsed, amount1Parsed, min0, min1, walletAddress, deadline],
+        args: [
+          searchedToken.address as Address,
+          selectedPairing.address as Address,
+          selectedPoolType.isStable,
+          amount0Parsed,
+          amount1Parsed,
+          min0,
+          min1,
+          walletAddress,
+          deadline,
+        ],
       });
     }
   }
@@ -1034,7 +1118,11 @@ export default function GuidedLaunchPage() {
                       {POOL_TYPES.map((type) => (
                         <button
                           key={type.id}
-                          onClick={() => { setSelectedPoolType(type); setRangeType("full"); setMaxPrice(""); }}
+                          onClick={() => {
+                            setSelectedPoolType(type);
+                            setRangeType("full");
+                            setMaxPrice("");
+                          }}
                           className={`w-full flex items-center rounded-xl border p-3.5 transition-all ${
                             selectedPoolType.id === type.id
                               ? "border-[#f7931a] bg-[#0a1612]"
@@ -1152,7 +1240,9 @@ export default function GuidedLaunchPage() {
 
               <div className="space-y-2">
                 <div className="text-sm font-semibold">
-                  {selectedPoolType.isCL ? "Initial token price" : "Token price"}
+                  {selectedPoolType.isCL
+                    ? "Initial token price"
+                    : "Token price"}
                 </div>
                 <div className="relative">
                   <input
@@ -1197,7 +1287,9 @@ export default function GuidedLaunchPage() {
                           }`}
                         >
                           <Check
-                            className={`w-3 h-3 ${rangeType === opt ? "text-white" : "invisible"}`}
+                            className={`w-3 h-3 ${
+                              rangeType === opt ? "text-white" : "invisible"
+                            }`}
                           />
                         </div>
                         <span className="text-sm">
@@ -1212,7 +1304,9 @@ export default function GuidedLaunchPage() {
                   {rangeType === "custom" && (
                     <div className="grid grid-cols-2 gap-3 pt-1">
                       <div className="space-y-1">
-                        <div className="text-xs text-white/50">Minimum price</div>
+                        <div className="text-xs text-white/50">
+                          Minimum price
+                        </div>
                         <div className="bg-[#0d1f1a] border border-white/10 rounded-xl p-3 space-y-1">
                           <div className="text-sm text-white/40 text-right">
                             {priceNum > 0 ? priceNum : "—"}
@@ -1226,7 +1320,9 @@ export default function GuidedLaunchPage() {
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <div className="text-xs text-white/50">Maximum price</div>
+                        <div className="text-xs text-white/50">
+                          Maximum price
+                        </div>
                         <div className="bg-[#0d1f1a] border border-white/10 rounded-xl p-3 space-y-1">
                           <input
                             type="text"
@@ -1337,7 +1433,11 @@ export default function GuidedLaunchPage() {
               </div>
 
               {/* Token 1 (computed) — hidden for CL single-sided */}
-              <div className={`space-y-2 ${selectedPoolType.id === "cl-single" ? "hidden" : ""}`}>
+              <div
+                className={`space-y-2 ${
+                  selectedPoolType.id === "cl-single" ? "hidden" : ""
+                }`}
+              >
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-white/80">Amount</span>

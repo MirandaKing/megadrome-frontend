@@ -15,7 +15,12 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePools, fullUSD, type PoolInfo, type TokenMeta } from "@/hooks/use-pools";
+import {
+  usePools,
+  fullUSD,
+  type PoolInfo,
+  type TokenMeta,
+} from "@/hooks/use-pools";
 import { shortenAddress } from "@/lib/format";
 import { useReadContracts, useAccount } from "wagmi";
 import type { Address } from "viem";
@@ -297,9 +302,7 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
         <div className="text-white/50 lg:hidden">Volume</div>
         <div
           className="lg:text-sm text-white cursor-default"
-          title={
-            fullUSD(pool.volumeUSD) || undefined
-          }
+          title={fullUSD(pool.volumeUSD) || undefined}
         >
           {pool.volume}
         </div>
@@ -502,9 +505,7 @@ function TokenRow({
         </div>
         <div
           className="text-sm font-semibold text-white cursor-default"
-          title={
-            fullUSD(token.priceUSD) || undefined
-          }
+          title={fullUSD(token.priceUSD) || undefined}
         >
           {formatPrice(token.priceUSD)}
         </div>
@@ -681,11 +682,7 @@ export default function Liquidity() {
               {loading ? (
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
-                <ProperTooltip
-                  tip={
-                    fullUSD(stats.volumeRaw)
-                  }
-                >
+                <ProperTooltip tip={fullUSD(stats.volumeRaw)}>
                   <div className="text-lg font-semibold text-white cursor-default">
                     {stats.volume}
                   </div>
@@ -697,9 +694,7 @@ export default function Liquidity() {
               {loading ? (
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
-                <ProperTooltip
-                  tip={fullUSD(stats.feesRaw)}
-                >
+                <ProperTooltip tip={fullUSD(stats.feesRaw)}>
                   <div className="text-lg font-semibold text-white cursor-default">
                     {stats.fees}
                   </div>
@@ -711,9 +706,7 @@ export default function Liquidity() {
               {loading ? (
                 <div className="h-6 w-24 rounded bg-white/10 animate-pulse mb-1" />
               ) : (
-                <ProperTooltip
-                  tip={fullUSD(stats.tvlRaw)}
-                >
+                <ProperTooltip tip={fullUSD(stats.tvlRaw)}>
                   <div className="text-lg font-semibold text-white cursor-default">
                     {stats.tvl}
                   </div>

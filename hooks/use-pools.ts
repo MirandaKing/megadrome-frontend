@@ -127,38 +127,52 @@ function getTokenMeta(
     };
   }
 
-  // 2. Envio Token entity - use for symbol/decimals/price
+  // Always extract price from Envio if available (even when symbol/name are empty)
   const envioToken = envioTokenMap.get(addr);
   const localToken = getTokenByAddress(address as Address);
+  const envioPrice = envioToken ? parsePoolUSD(envioToken.pricePerUSDNew) : 0;
 
   const isValidSymbol = (s: string) =>
     s && s !== "undefined" && s !== "" && s.length > 0;
 
+  // 2. Envio has valid symbol — use it as primary source
   if (envioToken && isValidSymbol(envioToken.symbol)) {
     return {
       symbol: envioToken.symbol,
       logoUrl: localToken?.logoUrl ?? "",
       address,
       decimals: Number(envioToken.decimals) || 18,
-      priceUSD: parsePoolUSD(envioToken.pricePerUSDNew),
+      priceUSD: envioPrice,
       verified:
         envioToken.isWhitelisted || localToken?.safetyLevel === "VERIFIED",
     };
   }
 
-  // 3. Local TOKEN_LIST lookup
+  // 3. Local TOKEN_LIST — use local metadata but inject Envio price if available
   if (localToken) {
     return {
       symbol: localToken.symbol,
       logoUrl: localToken.logoUrl,
       address,
       decimals: localToken.decimals,
-      priceUSD: 0,
-      verified: localToken.safetyLevel === "VERIFIED",
+      priceUSD: envioPrice,
+      verified: envioToken?.isWhitelisted || localToken.safetyLevel === "VERIFIED",
     };
   }
 
-  // 4. Unknown token - use truncated address as symbol
+  // 4. Envio-only token with empty symbol — use decimals/price from Envio, address as label
+  if (envioToken) {
+    return {
+      symbol: address.slice(0, 6) + "…" + address.slice(-4),
+      logoUrl: "",
+      address,
+      decimals: Number(envioToken.decimals) || 18,
+      priceUSD: envioPrice,
+      verified: envioToken.isWhitelisted,
+    };
+  }
+
+  // 5. Completely unknown token
   return {
     symbol: address.slice(0, 6) + "…" + address.slice(-4),
     logoUrl: "",

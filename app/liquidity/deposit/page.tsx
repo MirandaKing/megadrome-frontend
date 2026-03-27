@@ -411,8 +411,17 @@ function DepositForm({ poolAddress }: { poolAddress: string }) {
   }
 
   function getSimError(err: unknown): string {
-    const e = err as { shortMessage?: string; message?: string; cause?: { reason?: string } };
-    return e?.cause?.reason ?? e?.shortMessage ?? e?.message ?? "Transaction will revert";
+    const e = err as {
+      shortMessage?: string;
+      message?: string;
+      cause?: { reason?: string };
+    };
+    return (
+      e?.cause?.reason ??
+      e?.shortMessage ??
+      e?.message ??
+      "Transaction will revert"
+    );
   }
 
   async function handleApprove0() {
@@ -522,7 +531,15 @@ function DepositForm({ poolAddress }: { poolAddress: string }) {
             address: addresses.router,
             abi: ABIS.Router,
             functionName: "addLiquidityETH",
-            args: [token, pool.isStable, amountToken, (amountToken * 98n) / 100n, (amountETH * 98n) / 100n, walletAddress, deadline],
+            args: [
+              token,
+              pool.isStable,
+              amountToken,
+              BigInt(0),
+              BigInt(0),
+              walletAddress,
+              deadline,
+            ],
             value: amountETH,
             account: walletAddress,
           });
@@ -536,16 +553,35 @@ function DepositForm({ poolAddress }: { poolAddress: string }) {
           address: addresses.router,
           abi: ABIS.Router,
           functionName: "addLiquidityETH",
-          args: [token, pool.isStable, amountToken, (amountToken * 98n) / 100n, (amountETH * 98n) / 100n, walletAddress, deadline],
+          args: [
+            token,
+            pool.isStable,
+            amountToken,
+            BigInt(0),
+            BigInt(0),
+            walletAddress,
+            deadline,
+          ],
           value: amountETH,
         });
       } else {
         try {
+          console.log("adding");
           await publicClient.simulateContract({
             address: addresses.router,
             abi: ABIS.Router,
             functionName: "addLiquidity",
-            args: [token0Address!, token1Address!, pool.isStable, amount0Parsed, amount1Parsed, min0, min1, walletAddress, deadline],
+            args: [
+              token0Address!,
+              token1Address!,
+              pool.isStable,
+              amount0Parsed,
+              amount1Parsed,
+              BigInt(0),
+              BigInt(0),
+              walletAddress,
+              deadline,
+            ],
             account: walletAddress,
           });
         } catch (err) {
@@ -558,7 +594,17 @@ function DepositForm({ poolAddress }: { poolAddress: string }) {
           address: addresses.router,
           abi: ABIS.Router,
           functionName: "addLiquidity",
-          args: [token0Address!, token1Address!, pool.isStable, amount0Parsed, amount1Parsed, min0, min1, walletAddress, deadline],
+          args: [
+            token0Address!,
+            token1Address!,
+            pool.isStable,
+            amount0Parsed,
+            amount1Parsed,
+            BigInt(0),
+            BigInt(0),
+            walletAddress,
+            deadline,
+          ],
         });
       }
     }
